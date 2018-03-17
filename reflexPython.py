@@ -31,35 +31,24 @@ from pdb import set_trace as keyboard
 from pandas import rolling_median
 
 # Load Eye Cascade
-eye_cascade = cv2.CascadeClassifier('/Users/brettmeyers/Desktop/pypupillometry/haareyecascades/haarcascade_eye.xml')
+eye_cascade = cv2.CascadeClassifier('/Users/JonHolt/Desktop/BL_Stuff/haarcascade_eye.xml')
 
     ###############################################################################
     ###################  TRACEBACKS FOR DEBUGGING    ##############################
     ###############################################################################
 
 
-def log_trace(print_error=True, log_file=""):
+def trace(verbose, log_file=""):
     exc_info = sys.exc_info()[2]
     format_tb = traceback.format_tb(exc_info)[0]
-    errors = "Py Errors:\nTb Info:\n {} \n Error Info:\n {}: {} + \n ".format(format_tb,
+    errors = "Py Errors:\nTb Info:\n {} \n Error Info:\n {}: {} \n ".format(format_tb,
                           str(sys.exc_info()[0]),
                           str(sys.exc_info()[1]))
-    if print_error:
-        print(errors)
     if log_file:
         o = open(log_file, 'a')
         o.write(errors + "\n\n\n")
         o.close()
 
-
-def trace(verbose):
-    exc_info = sys.exc_info()[2]
-    format_tb = traceback.format_tb(exc_info)[0]
-    errors = "Py Errors:\nTb Info:\n {} \n " \
-             "Error Info:\n {}: {} +" \
-             "\n ".format(format_tb,
-                          str(sys.exc_info()[0]),
-                          str(sys.exc_info()[1]))
     if verbose:
         print(errors)
     return errors
