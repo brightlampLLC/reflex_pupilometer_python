@@ -173,35 +173,35 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
             FMC02 = fft02FullImageObj(FMT02)
 
             # Run Translation Subfunc
-            trnsdisp = subPixel2D(abs(sp.fftpack.fftshift(ifftFullImageObj(multiply(FFT01,conj(FFT02))))))
+            trnsdisp = subPixel2D(abs(sp.fftpack.fftshift(ifftFullImageObj(multiply(FFT01, conj(FFT02))))))
 
             # Store new displacement
             dispX[i] += trnsdisp[1]
             dispY[i] += trnsdisp[0]
 
             # Run Scaling Subfunc
-            fmcdisp = subPixel2D(abs(sp.fftpack.fftshift(ifftFullImageObj(multiply(FMC01,conj(FMC02))))))
+            fmcdisp = subPixel2D(abs(sp.fftpack.fftshift(ifftFullImageObj(multiply(FMC01, conj(FMC02))))))
 
             # Store Scale from FMC algorithm
             scldisp[i] += fmcdisp[1]
 
             # Update Warping Matrix
-            TRev[0,0] = np.sqrt(1/pow(MaxRad,-scldisp[i]/frame01.shape[1]))
-            TRev[1,1] = np.sqrt(1/pow(MaxRad,-scldisp[i]/frame01.shape[1]))
-            TRev[0,2] = (1-TRev[0,0])*frame01.shape[1]/2 - dispX[i]/2
-            TRev[1,2] = (1-TRev[1,1])*frame01.shape[0]/2 - dispY[i]/2
+            TRev[0, 0] = np.sqrt(1/pow(MaxRad, -scldisp[i]/frame01.shape[1]))
+            TRev[1, 1] = np.sqrt(1/pow(MaxRad, -scldisp[i]/frame01.shape[1]))
+            TRev[0, 2] = (1-TRev[0, 0])*frame01.shape[1]/2 - dispX[i]/2
+            TRev[1, 2] = (1-TRev[1, 1])*frame01.shape[0]/2 - dispY[i]/2
 
-            TFor[0,0] = np.sqrt(1*pow(MaxRad,-scldisp[i]/frame01.shape[1]))
-            TFor[1,1] = np.sqrt(1*pow(MaxRad,-scldisp[i]/frame01.shape[1]))
-            TFor[0,2] = (1-TFor[0,0])*frame01.shape[1]/2 + dispX[i]/2
-            TFor[1,2] = (1-TFor[1,1])*frame01.shape[0]/2 + dispY[i]/2
+            TFor[0, 0] = np.sqrt(1*pow(MaxRad, -scldisp[i]/frame01.shape[1]))
+            TFor[1, 1] = np.sqrt(1*pow(MaxRad, -scldisp[i]/frame01.shape[1]))
+            TFor[0, 2] = (1-TFor[0, 0])*frame01.shape[1]/2 + dispX[i]/2
+            TFor[1, 2] = (1-TFor[1, 1])*frame01.shape[0]/2 + dispY[i]/2
 
             # Update iteration & error value
             errval = max([sqrt(trnsdisp[1]**2+trnsdisp[0]**2),abs(fmcdisp[1])])
             iteration += 1
 
         print("Registering frame %03i, Iter %03i, DispX %03.2f, DispY %03.2f, Scale %03.3f, Error %03.3f" \
-                  % (i,iteration,np.float(dispX[i]),np.float(dispY[i]),pow(MaxRad,-scldisp[i]/frame01.shape[1]),errval))
+                  % (i, iteration, np.float(dispX[i]), np.float(dispY[i]), pow(MaxRad, -scldisp[i]/frame01.shape[1]), errval))
 
         return scldisp, dispX, dispY, fr01, fr02
     except:
@@ -220,26 +220,26 @@ def dilationEstimator(i, subreg01, subreg02, win2D, maxrad, errthresh, iterthres
 
         while all((errval > errthresh, iteration < iterthresh)):
             # Reconstruct images based on transform matrices
-            sr01 = cv2.warpAffine(subreg01.astype(float),Tfor[0:2,:],(subreg01.shape[1],subreg01.shape[0]),\
+            sr01 = cv2.warpAffine(subreg01.astype(float), Tfor[0:2, :], (subreg01.shape[1], subreg01.shape[0]),\
                                   cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS).astype(float)
             sr01 = np.nan_to_num(sr01)
-            sr01 -= sr01.mean(axis=(0,1))
-            sr01 = multiply(sr01,win2D)
-            sr02 = cv2.warpAffine(subreg02.astype(float),Trev[0:2,:],(subreg01.shape[1],subreg01.shape[0]),\
+            sr01 -= sr01.mean(axis=(0, 1))
+            sr01 = multiply(sr01, win2D)
+            sr02 = cv2.warpAffine(subreg02.astype(float), Trev[0:2, :], (subreg01.shape[1], subreg01.shape[0]),\
                                   cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS).astype(float)
             sr02 = np.nan_to_num(sr02)
-            sr02 -= sr02.mean(axis=(0,1))
-            sr02 = multiply(sr02,win2D)
+            sr02 -= sr02.mean(axis=(0, 1))
+            sr02 = multiply(sr02, win2D)
 
             # Calculate FFTs for image pair
             fft01 = sp.fftpack.fftshift(fft01FMCObj(sr01))
             fft02 = sp.fftpack.fftshift(fft02FMCObj(sr02))
 
             # Run FMT on FFTs
-            fmt01 = multiply(win2D,cv2.logPolar(abs(fft01).astype(float),(fft01.shape[1]/2,fft01.shape[0]/2),\
-                   fft01.shape[1]/log(maxrad),flags = cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)).astype(float)
-            fmt02 = multiply(win2D,cv2.logPolar(abs(fft02).astype(float),(fft02.shape[1]/2,fft02.shape[0]/2),\
-                   fft02.shape[1]/log(maxrad),flags = cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)).astype(float)
+            fmt01 = multiply(win2D, cv2.logPolar(abs(fft01).astype(float), (fft01.shape[1]/2, fft01.shape[0]/2),\
+                   fft01.shape[1]/log(maxrad), flags = cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)).astype(float)
+            fmt02 = multiply(win2D, cv2.logPolar(abs(fft02).astype(float), (fft02.shape[1]/2, fft02.shape[0]/2),\
+                   fft02.shape[1]/log(maxrad), flags = cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)).astype(float)
 
             # Calculate FFTs of FMTs
             fmc01 = fft01FMCObj(fmt01)
@@ -259,21 +259,21 @@ def dilationEstimator(i, subreg01, subreg02, win2D, maxrad, errthresh, iterthres
             sclPix[i] += fmcdisp[1]
 
             # Update Warping Matrix
-            Trev[0,0] = np.sqrt(1/pow(maxrad,-sclPix[i]/subreg01.shape[1]))
-            Trev[1,1] = np.sqrt(1/pow(maxrad,-sclPix[i]/subreg01.shape[1]))
-            Trev[0,2] = (1-Trev[0,0])*subreg01.shape[1]/2 - dispx[i]/2
-            Trev[1,2] = (1-Trev[1,1])*subreg01.shape[0]/2 - dispy[i]/2
+            Trev[0, 0] = np.sqrt(1/pow(maxrad, -sclPix[i]/subreg01.shape[1]))
+            Trev[1, 1] = np.sqrt(1/pow(maxrad, -sclPix[i]/subreg01.shape[1]))
+            Trev[0, 2] = (1-Trev[0, 0])*subreg01.shape[1]/2 - dispx[i]/2
+            Trev[1, 2] = (1-Trev[1, 1])*subreg01.shape[0]/2 - dispy[i]/2
 
-            Tfor[0,0] = np.sqrt(1*pow(maxrad,-sclPix[i]/subreg02.shape[1]))
-            Tfor[1,1] = np.sqrt(1*pow(maxrad,-sclPix[i]/subreg02.shape[1]))
-            Tfor[0,2] = (1-Tfor[0,0])*subreg02.shape[1]/2 + dispx[i]/2
-            Tfor[1,2] = (1-Tfor[1,1])*subreg02.shape[0]/2 + dispy[i]/2
+            Tfor[0, 0] = np.sqrt(1*pow(maxrad, -sclPix[i]/subreg02.shape[1]))
+            Tfor[1, 1] = np.sqrt(1*pow(maxrad, -sclPix[i]/subreg02.shape[1]))
+            Tfor[0, 2] = (1-Tfor[0, 0])*subreg02.shape[1]/2 + dispx[i]/2
+            Tfor[1, 2] = (1-Tfor[1, 1])*subreg02.shape[0]/2 + dispy[i]/2
 
             # Update iteration & error value
-            errval = max([sqrt(trnsdisp[1]**2+trnsdisp[0]**2),abs(fmcdisp[1])])
+            errval = max([sqrt(trnsdisp[1]**2+trnsdisp[0]**2), abs(fmcdisp[1])])
             iteration += 1
         print("Registering frame %03i, Iter %03i, DispX %03.2f, DispY %03.2f, Scale %03.3f, Error %03.3f" \
-                  % (i,iteration,np.float(dispx[i]),np.float(dispy[i]),pow(maxrad,-sclPix[i]/subreg01.shape[1]),errval))
+                  % (i, iteration, np.float(dispx[i]), np.float(dispy[i]), pow(maxrad, -sclPix[i]/subreg01.shape[1]), errval))
         return sclPix, dispx, dispy, sr01, sr02
     except:
         trace(True)
@@ -288,22 +288,26 @@ def dilationEstimator(i, subreg01, subreg02, win2D, maxrad, errthresh, iterthres
 if __name__ == "__main__":
 
     # Set Image Directory
-    filename = '/Users/brettmeyers/Desktop/from_S7/2018-02-06 22:32:25.mp4'
+    filename = '/Users/JonHolt/Desktop/BL_Stuff/testVideo_1-1_compression.mp4'
+
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
-    vid = imageio.get_reader(filename,  'ffmpeg')
+    vid = imageio.get_reader(filename, 'ffmpeg')
+
     # Get image properties for memory allocation purposes
     imgProp = vid.get_meta_data(index=None)
+
     # Set Frame Range to Evaluate
-    frng = arange(0,imgProp['nframes'],1)
-    rmrng = zeros([imgProp['nframes'],1])
+    frng = arange(0, imgProp['nframes'], 1)
+    rmrng = zeros([imgProp['nframes'], 1])
     fps = vid.get_meta_data()['fps']
+
     # Identify over-saturated frames, build frame series
     for i in frng:
         rmrng[i] = vid.get_data(i).mean()/255
-    frng = np.delete(frng,(np.r_[0:np.round(0.8*vid.get_meta_data()['fps']),\
-                        where((rmrng>=0.70))[0]-2,where((rmrng>=0.70))[0]-1,\
-                        where((rmrng>=0.70))[0][-1],np.round(5.8*vid.get_meta_data()['fps']):imgProp['nframes']]))
+    frng = np.delete(frng, (np.r_[0:np.round(0.8*vid.get_meta_data()['fps']),\
+                        where((rmrng >= 0.70))[0]-2, where((rmrng >= 0.70))[0]-1,\
+                        where((rmrng >= 0.70))[0][-1], np.round(5.8 * vid.get_meta_data()['fps']):imgProp['nframes']]))
 
     ###############################################################################
     ##################    RUN IMAGE REGISTRATION     ##############################
@@ -313,21 +317,22 @@ if __name__ == "__main__":
     xResample = imgProp['size'][1]
     yResample = imgProp['size'][0]
     fmcMinRad = 1
-    fmcMaxRad = np.min([yResample,xResample])/2
+    fmcMaxRad = np.min([yResample, xResample])/2
     fmcNoOfRings = xResample
     fmcNoOfWedges = yResample
-    Win2D = hanningWindow([yResample,xResample])
+    Win2D = hanningWindow([yResample, xResample])
+
     # Generate FFTW objects
-    fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
-              pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
+    fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
+              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
-    fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
-              pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
+    fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
+              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
-    ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
-              pyfftw.empty_aligned((yResample,xResample), dtype='complex128'),\
+    ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
+              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
     # Initialize displacement & scaling vectors
@@ -337,105 +342,110 @@ if __name__ == "__main__":
     iterthresh = float(25)
     errthresh = float(1E-1)
     for i in frng:
-        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i,vid.get_data(frng[0])[:,:,0].reshape(yResample,xResample),\
-                    vid.get_data(i)[:,:,0].reshape(yResample,xResample),Win2D,fmcMaxRad,errthresh, \
-                    iterthresh,dispX,dispY,scldisp)
+        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, vid.get_data(frng[0])[:,:,0].reshape(yResample, xResample),\
+                    vid.get_data(i)[:, :, 0].reshape(yResample, xResample), Win2D, fmcMaxRad, errthresh,\
+                    iterthresh, dispX, dispY, scldisp)
 
     ###############################################################################
     #############     DETECT EYE IN REGISTERED IMAGES     #########################
     ###############################################################################
 
     # Initialize window size & window center vectors
-    WinDims = zeros([imgProp['nframes'],4],dtype=int)
+    WinDims = zeros([imgProp['nframes'], 4], dtype=int)
+
     # Run Haar Cascade classifier to find image center & window size per frame
     # Build Transform
     T1 = np.eye(3, dtype=float)
     for i in frng:
         # Build Transform
-        T1[0,0] = pow(fmcMaxRad,-scldisp[i]/xResample)
-        T1[1,1] = pow(fmcMaxRad,-scldisp[i]/xResample)
-        T1[0,2] = (1-T1[0,0])*xResample/2 + dispX[i]
-        T1[1,2] = (1-T1[1,1])*yResample/2 + dispY[i]
+        T1[0, 0] = pow(fmcMaxRad, -scldisp[i]/xResample)
+        T1[1, 1] = pow(fmcMaxRad, -scldisp[i]/xResample)
+        T1[0, 2] = (1-T1[0, 0])*xResample/2 + dispX[i]
+        T1[1, 2] = (1-T1[1, 1])*yResample/2 + dispY[i]
+
         # Transform current frame to reference position, convert to 8U
-        curframe = cv2.warpAffine(vid.get_data(i).reshape(yResample,xResample,3),\
-                                  T1[0:2,:],(xResample,yResample),cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+        curframe = cv2.warpAffine(vid.get_data(i).reshape(yResample, xResample, 3),\
+                                  T1[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
         curframe[np.where(curframe == 0)] = 255
-        blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1),(109,109),11))
+        blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
         peakLocs = where(blurframe == blurframe.max())
+
         # Run Haar Cascade classifier
-        eyes = eye_cascade.detectMultiScale(curframe,scaleFactor=1.1,minNeighbors=5,\
-                flags=0,minSize=(int(np.min([yResample,xResample])/4),int(np.min([yResample,xResample])/4)))
+        eyes = eye_cascade.detectMultiScale(curframe, scaleFactor=1.1, minNeighbors=5,\
+                flags=0, minSize=(int(np.min([yResample, xResample])/4), int(np.min([yResample, xResample])/4)))
+
         # If eye is found, use Gaussian fitting function to find pupil center
         if len(eyes) !=0:
             # Store center locations and window sizes
-            WinDims[i,0] += peakLocs[0].mean()
-            WinDims[i,1] += peakLocs[1].mean()
-            WinDims[i,2] += (eyes[0,3])/2
-            WinDims[i,3] += (eyes[0,2])/2
+            WinDims[i, 0] += peakLocs[0].mean()
+            WinDims[i, 1] += peakLocs[1].mean()
+            WinDims[i, 2] += (eyes[0, 3])/2
+            WinDims[i, 3] += (eyes[0, 2])/2
+
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i" \
-                  % (i,peakLocs[0].mean(),peakLocs[1].mean(),eyes[0,3]/2,eyes[0,2]/2))
+                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[0, 3]/2, eyes[0, 2]/2))
 
     ###############################################################################
     #############     PUPIL DILATION OF REGISTERED IMAGES     #####################
     ###############################################################################
 
-    cropWin = np.round(np.median(WinDims[frng,:],axis=0)).astype(int)
-    timeVector = arange(0,imgProp['nframes'],1)/vid.get_meta_data()['fps']
+    cropWin = np.round(np.median(WinDims[frng, :], axis=0)).astype(int)
+    timeVector = arange(0, imgProp['nframes'], 1)/vid.get_meta_data()['fps']
     timeStep = np.gradient(frng)/vid.get_meta_data()['fps']
     frmStep = np.gradient(frng)
-    fft01FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
-              pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
+    fft01FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
+              pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
-    fft02FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
-              pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
+    fft02FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
+              pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
-    ifftFMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
-              pyfftw.empty_aligned((cropWin[2],cropWin[3]), dtype='complex128'),\
+    ifftFMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
+              pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),\
               axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),\
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
-    win2D = hanningWindow([cropWin[2],cropWin[3]])
+    win2D = hanningWindow([cropWin[2], cropWin[3]])
     Tforward = np.eye(3, dtype=float)
     Treverse = np.eye(3, dtype=float)
-    fmcmaxrad = np.min([cropWin[2],cropWin[3]])/2
+    fmcmaxrad = np.min([cropWin[2], cropWin[3]])/2
     # Load Reference Image
-    fr01 = zeros([cropWin[2],cropWin[3]])
-    fr02 = zeros([cropWin[2],cropWin[3]])
+    fr01 = zeros([cropWin[2], cropWin[3]])
+    fr02 = zeros([cropWin[2], cropWin[3]])
     iterthresh = float(100)
     errthresh = float(1E-2)
-    dispx = zeros([imgProp['nframes'],1])
-    dispy = zeros([imgProp['nframes'],1])
-    sclPix = zeros([imgProp['nframes'],1])
+    dispx = zeros([imgProp['nframes'], 1])
+    dispy = zeros([imgProp['nframes'], 1])
+    sclPix = zeros([imgProp['nframes'], 1])
 
-    for i in arange(1,len(frng)-2,1):
+    for i in arange(1, len(frng)-2, 1):
         # Build forward transform
-        Tforward[0,0] = pow(fmcMaxRad,-scldisp[frng[i+1]]/xResample)
-        Tforward[1,1] = pow(fmcMaxRad,-scldisp[frng[i+1]]/xResample)
-        Tforward[0,2] = (1-Tforward[0,0])*xResample/2 + dispX[frng[i+1]]
-        Tforward[1,2] = (1-Tforward[1,1])*yResample/2 + dispY[frng[i+1]]
+        Tforward[0, 0] = pow(fmcMaxRad, -scldisp[frng[i+1]]/xResample)
+        Tforward[1, 1] = pow(fmcMaxRad, -scldisp[frng[i+1]]/xResample)
+        Tforward[0, 2] = (1-Tforward[0, 0])*xResample/2 + dispX[frng[i+1]]
+        Tforward[1, 2] = (1-Tforward[1, 1])*yResample/2 + dispY[frng[i+1]]
         # Build reverse transform
-        Treverse[0,0] = pow(fmcMaxRad,-scldisp[frng[i-1]]/xResample)
-        Treverse[1,1] = pow(fmcMaxRad,-scldisp[frng[i-1]]/xResample)
-        Treverse[0,2] = (1-Treverse[0,0])*xResample/2 + dispX[frng[i-1]]
-        Treverse[1,2] = (1-Treverse[1,1])*yResample/2 + dispY[frng[i-1]]
+        Treverse[0, 0] = pow(fmcMaxRad, -scldisp[frng[i-1]]/xResample)
+        Treverse[1, 1] = pow(fmcMaxRad, -scldisp[frng[i-1]]/xResample)
+        Treverse[0, 2] = (1-Treverse[0, 0])*xResample/2 + dispX[frng[i-1]]
+        Treverse[1, 2] = (1-Treverse[1, 1])*yResample/2 + dispY[frng[i-1]]
         # Transform reference & current frame to reference position, convert to 8U
-        current = cv2.warpAffine(vid.get_data(frng[i+1]).reshape(yResample,xResample,3),\
-                Tforward[0:2,:],(xResample,yResample),cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
-        reference = cv2.warpAffine(vid.get_data(frng[i-1]).reshape(yResample,xResample,3),\
-                Treverse[0:2,:],(xResample,yResample),cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+        current = cv2.warpAffine(vid.get_data(frng[i+1]).reshape(yResample, xResample, 3),\
+                Tforward[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+        reference = cv2.warpAffine(vid.get_data(frng[i-1]).reshape(yResample, xResample, 3),\
+                Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
         # Crop regions using window elements identified in previous step
         curROI = current[(cropWin[0]-cropWin[2]/2):(cropWin[0]+cropWin[2]/2),\
-                                (cropWin[1]-cropWin[3]/2):(cropWin[1]+cropWin[3]/2),:]
+                                (cropWin[1]-cropWin[3]/2):(cropWin[1]+cropWin[3]/2), :]
         refROI = reference[(cropWin[0]-cropWin[2]/2):(cropWin[0]+cropWin[2]/2),\
-                                (cropWin[1]-cropWin[3]/2):(cropWin[1]+cropWin[3]/2),:]
+                                (cropWin[1]-cropWin[3]/2):(cropWin[1]+cropWin[3]/2), :]
         # Convert to HSV & Histogram Equalize
-        curROI = cv2.cvtColor(curROI,cv2.COLOR_RGB2Lab)
-    #    curROI[:,:,0] = clahe.apply(curROI[:,:,0])
-    #    curROI[:,:,0] = cv2.equalizeHist(curROI[:,:,0])
-    #    curROI  = cv2.cvtColor(curROI,cv2.COLOR_HSV2RGB)
-        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:,:,0])).astype(float)
-        refROI = cv2.cvtColor(refROI,cv2.COLOR_RGB2Lab)
+        curROI = cv2.cvtColor(curROI, cv2.COLOR_RGB2Lab)
+    #    curROI[:,:,0] = clahe.apply(curROI[:, :, 0])
+    #    curROI[:,:,0] = cv2.equalizeHist(curROI[:, :, 0])
+    #    curROI  = cv2.cvtColor(curROI, cv2.COLOR_HSV2RGB)
+        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:, :, 0])).astype(float)
+        refROI = cv2.cvtColor(refROI, cv2.COLOR_RGB2Lab)
     #    refROI[:,:,0] = clahe.apply(refROI[:,:,0])
     #    refROI[:,:,0] = cv2.equalizeHist(refROI[:,:,0])
     #    refROI  = cv2.cvtColor(refROI,cv2.COLOR_HSV2RGB)
