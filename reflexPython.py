@@ -326,21 +326,46 @@ if __name__ == "__main__":
     fmcNoOfWedges = yResample
     Win2D = hanningWindow([yResample, xResample])
 
-    # Generate FFTW objects
+    # Generate FFTW objects - https://hgomersall.github.io/pyFFTW/pyfftw/pyfftw.html
+    #   Parameters:
+    #       input_array - Return the input array that is associated with the FFTW instance.
+    #       output_array - Return the output array that is associated with the FFTW instance.
+    #       axes – Return the axes for the planned FFT in canonical form, as a tuple of positive integers.
+    #       direction – Return the planned FFT direction. Either ‘FFTW_FORWARD’ or ‘FFTW_BACKWARD’.
+    #       flags – Return which flags were used to construct the FFTW object.
+    #       threads – Tells the wrapper how many threads to use when invoking FFTW, with a default of 1.
+    #       planning_timelimit - Indicates the maximum number of seconds it should spend planning the FFT.
+    # Example:
+    #   pyfftw.FFTW(input_array,
+    #               output_array,
+    #               axes=(-1, ),
+    #               direction='FFTW_FORWARD',
+    #               flags=('FFTW_MEASURE', ),
+    #               threads=1,
+    #               planning_timelimit=None)
     fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
-              threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    axes=(-2, -1),
+                                    direction='FFTW_FORWARD',
+                                    flags=('FFTW_MEASURE', ),
+                                    threads=multiprocessing.cpu_count(),
+                                    planning_timelimit=None)
 
     fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
-              threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    axes=(-2, -1),
+                                    direction='FFTW_FORWARD',
+                                    flags=('FFTW_MEASURE', ),
+                                    threads=multiprocessing.cpu_count(),
+                                    planning_timelimit=None)
 
     ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-              axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),
-              threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                   pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                   axes=(-2, -1),
+                                   direction='FFTW_BACKWARD',
+                                   flags=('FFTW_MEASURE', ),
+                                   threads=multiprocessing.cpu_count(),
+                                   planning_timelimit=None)
 
     # Initialize displacement & scaling vectors
     dispX = zeros([imgProp['nframes'], 1])
@@ -364,6 +389,7 @@ if __name__ == "__main__":
     # Run Haar Cascade classifier to find image center & window size per frame
     # Build Transform
     T1 = np.eye(3, dtype=float)
+
     for i in frng:
         # Build Transform
         T1[0, 0] = pow(fmcMaxRad, -scldisp[i] / xResample)
@@ -373,29 +399,31 @@ if __name__ == "__main__":
 
         # Transform current frame to reference position, convert to 8U
         curframe = cv2.warpAffine(vid.get_data(i).reshape(yResample, xResample, 3),
-                                  T1[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+                                  T1[0:2, :],
+                                  (xResample, yResample),
+                                  cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
         curframe[np.where(curframe == 0)] = 255
         blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
         peakLocs = where(blurframe == blurframe.max())
 
         # Run Haar Cascade classifier - https://docs.opencv.org/2.4/modules/objdetect/doc/cascade_classification.html
         # DOES NOT WORK WITH ARTIFICIAL DATA (i.e. FAKE EYES)
-        # Parameters:
-            # cascade – Haar classifier cascade
-            # image – Matrix of the type CV_8U containing an image where objects are detected.
-            # objects – Vector of rectangles where each rectangle contains the detected object.
-            # scaleFactor – Parameter specifying how much the image size is reduced at each image scale.
-            # minNeighbors – Parameter specifying how many neighbors each candidate rectangle should have to retain it.
-            # flags – Parameter with the same meaning for an old cascade. Not used for a new cascade.
-            # minSize – Minimum possible object size. Objects smaller than that are ignored.
-            # maxSize – Maximum possible object size. Objects larger than that are ignored.
+        #   Parameters:
+        #       cascade – Haar classifier cascade
+        #       image – Matrix of the type CV_8U containing an image where objects are detected.
+        #       objects – Vector of rectangles where each rectangle contains the detected object.
+        #       scaleFactor – Specifies how much the image size is reduced at each image scale.
+        #       minNeighbors – Specifies how many neighbors each candidate rectangle should have to retain it.
+        #       flags – Parameter with the same meaning for an old cascade. Not used for a new cascade.
+        #       minSize – Minimum possible object size. Objects smaller than that are ignored.
+        #       maxSize – Maximum possible object size. Objects larger than that are ignored.
         # Example:
-            # Python: cv2.CascadeClassifier.detectMultiScale(image[,
-            #                                                scaleFactor[,
-            #                                                minNeighbors[,
-            #                                                flags[,
-            #                                                minSize[,
-            #                                                maxSize]]]]])
+        #   cv2.CascadeClassifier.detectMultiScale(image[,
+        #                                            scaleFactor[,
+        #                                            minNeighbors[,
+        #                                            flags[,
+        #                                            minSize[,
+        #                                            maxSize]]]]])
         eyes = eye_cascade.detectMultiScale(curframe,
                                             scaleFactor=1.1,
                                             minNeighbors=5,
@@ -428,19 +456,28 @@ if __name__ == "__main__":
         frmStep = np.gradient(frng)
 
         fft01FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
-                  threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                  pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
+                                  axes=(-2, -1),
+                                  direction='FFTW_FORWARD',
+                                  flags=('FFTW_MEASURE', ),
+                                  threads=multiprocessing.cpu_count(),
+                                  planning_timelimit=None)
 
         fft02FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
-                  threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                  pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
+                                  axes=(-2, -1),
+                                  direction='FFTW_FORWARD',
+                                  flags=('FFTW_MEASURE', ),
+                                  threads=multiprocessing.cpu_count(),
+                                  planning_timelimit=None)
 
         ifftFMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                  axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),
-                  threads=multiprocessing.cpu_count(), planning_timelimit=None)
+                                 pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
+                                 axes=(-2, -1),
+                                 direction='FFTW_BACKWARD',
+                                 flags=('FFTW_MEASURE', ),
+                                 threads=multiprocessing.cpu_count(),
+                                 planning_timelimit=None)
 
         win2D = hanningWindow([cropWin[2], cropWin[3]])
         Tforward = np.eye(3, dtype=float)
