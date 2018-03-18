@@ -432,12 +432,14 @@ if __name__ == "__main__":
                                                      int(np.min([yResample, xResample]) / 4)))
 
         # If eye is found, use Gaussian fitting function to find pupil center
-        if len(eyes) != 0:
+        if len(eyes) != 1:
             # Store center locations and window sizes
             WinDims[i, 0] += peakLocs[0].mean()
             WinDims[i, 1] += peakLocs[1].mean()
-            WinDims[i, 2] += (eyes[0, 3]) / 2
-            WinDims[i, 3] += (eyes[0, 2]) / 2
+            # WinDims[i, 2] += (eyes[0, 3]) / 2
+            # WinDims[i, 3] += (eyes[0, 2]) / 2
+            WinDims[i, 2] += 64
+            WinDims[i, 3] += 64
 
         # print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
         #           % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[0, 3] / 2, eyes[0, 2] / 2))
