@@ -331,10 +331,12 @@ if __name__ == "__main__":
               pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
+
     fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
               pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
               axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
               threads=multiprocessing.cpu_count(), planning_timelimit=None)
+
     ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
               pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
               axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),
@@ -376,7 +378,24 @@ if __name__ == "__main__":
         blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
         peakLocs = where(blurframe == blurframe.max())
 
-        # Run Haar Cascade classifier
+        # Run Haar Cascade classifier - https://docs.opencv.org/2.4/modules/objdetect/doc/cascade_classification.html
+        # DOES NOT WORK WITH ARTIFICIAL DATA (i.e. FAKE EYES)
+        # Parameters:
+            # cascade – Haar classifier cascade
+            # image – Matrix of the type CV_8U containing an image where objects are detected.
+            # objects – Vector of rectangles where each rectangle contains the detected object.
+            # scaleFactor – Parameter specifying how much the image size is reduced at each image scale.
+            # minNeighbors – Parameter specifying how many neighbors each candidate rectangle should have to retain it.
+            # flags – Parameter with the same meaning for an old cascade. Not used for a new cascade.
+            # minSize – Minimum possible object size. Objects smaller than that are ignored.
+            # maxSize – Maximum possible object size. Objects larger than that are ignored.
+        # Example:
+            # Python: cv2.CascadeClassifier.detectMultiScale(image[,
+            #                                                scaleFactor[,
+            #                                                minNeighbors[,
+            #                                                flags[,
+            #                                                minSize[,
+            #                                                maxSize]]]]])
         eyes = eye_cascade.detectMultiScale(curframe,
                                             scaleFactor=1.1,
                                             minNeighbors=5,
@@ -392,30 +411,12 @@ if __name__ == "__main__":
             WinDims[i, 2] += (eyes[0, 3]) / 2
             WinDims[i, 3] += (eyes[0, 2]) / 2
 
-        # fps = vid.get_meta_data()['fps']
-        # writer = imageio.get_writer('/Users/JonHolt/Desktop/BL_Stuff/testVideo_1-1_compression.mp4', fps=fps)
-        #
-        # # Show/Write Registered Video
-        # for i in frng:
-        #    # Build Transform
-        #    T1 = np.eye(3, dtype=float)
-        #    T1[0, 0] = pow(fmcMaxRad,-scldisp[i]/xResample)
-        #    T1[1, 1] = pow(fmcMaxRad,-scldisp[i]/xResample)
-        #    T1[0, 2] = (1-T1[0,0])*xResample/2 - np.float(dispX[i])
-        #    T1[1, 2] = (1-T1[1,1])*yResample/2 - np.float(dispY[i])
-        #    curframe = cv2.warpAffine(vid.get_data(i).reshape(yResample, xResample, 3),
-        #                              T1[0:2, :], (xResample, yResample), cv2.INTER_LINEAR)
-        #    writer.append_data(curframe)
-        #    fig = pylab.figure(5)
-        #    fig.suptitle('image #{}'.format(i), fontsize=20)
-        #    pylab.imshow(curframe)
-        #    pylab.show()
-        #    pylab.pause(1E-2)
-        #    pylab.clf()
-        # writer.close()
+        # print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
+        #           % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[0, 3] / 2, eyes[0, 2] / 2))
 
+        # Only use when skipping the haar classifier - FOR ARTIFICIAL DATA
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
-                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[0, 3] / 2, eyes[0, 2] / 2))
+                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), 64, 64))
 
     ###############################################################################
     #############     PUPIL DILATION OF REGISTERED IMAGES     #####################
@@ -430,10 +431,12 @@ if __name__ == "__main__":
                   pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
                   axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
                   threads=multiprocessing.cpu_count(), planning_timelimit=None)
+
         fft02FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
                   pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
                   axes=(-2, -1), direction='FFTW_FORWARD', flags=('FFTW_MEASURE', ),
                   threads=multiprocessing.cpu_count(), planning_timelimit=None)
+
         ifftFMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
                   pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
                   axes=(-2, -1), direction='FFTW_BACKWARD', flags=('FFTW_MEASURE', ),
