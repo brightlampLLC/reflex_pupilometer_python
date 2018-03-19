@@ -1,9 +1,8 @@
 # reflex_pupilometer_python
-Version(s): Python3.6 / Anaconda3 
+##### Version(s): Python3.6 / Anaconda3 
+##### IDE: PyCharm2017.3.4
 
-IDE: PyCharm2017.3.4
-
-Install the following packages in the "Project Interpreter":
+##### Install the following packages in the "Project Interpreter":
 - imageio
 - matplotlib
 - numba
@@ -14,7 +13,7 @@ Install the following packages in the "Project Interpreter":
 - pyFFTW
 - scipy
 
-After installation, the "Project Interpreter" should look like this:
+##### After installation, the "Project Interpreter" should look like this:
 
 | PACKAGE   | VERSION |   LATEST |
 | ---       | ---     | ---      |
