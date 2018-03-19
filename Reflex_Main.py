@@ -2,13 +2,21 @@
 #   Name: Reflex_Main
 #   Purpose: Main program for 'Reflex' algorithm
 #
-#   !/usr/bin/env python3
+#   !/usr/scripts/env python3
 #   -*- coding: utf-8 -*-
 #
 #   Created on Tue Mar 18 22:14:12 2018
 #   @author: brettmeyers
 #   @author: jonholt
 # ----------------------------------------------------------------------------------------------------------------------
+
+# functions to use for importing / exporting values
+# From filename import func_name
+# import filename
+# import filename as func
+# func.coolfun(arg)
+# import settings_file as set
+# Local_var = set.config_var
 
     ###############################################################################
     ###################  IMPORT RELEVANT LIBRARIES   ##############################
@@ -33,6 +41,9 @@ from scipy.signal import hanning
 eye_cascade = cv2.CascadeClassifier('/Users/JonHolt/Desktop/BL_Stuff/haarcascade_eye.xml')
 
 pyfftw.interfaces.cache.enable()
+
+# Call "subPixel2D" Function
+from SubPixel2D import subPixel2D
 
 
 def subPixel2D(plane):
