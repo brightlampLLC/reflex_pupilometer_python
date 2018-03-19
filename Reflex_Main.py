@@ -55,7 +55,7 @@ pyfftw.interfaces.cache.enable()
 if __name__ == "__main__":
 
     # Set Image Directory
-    filename = '/Users/JonHolt/Desktop/BL_Stuff/testVideo_1-1_compression.mp4'
+    filename = '/Users/JonHolt/Desktop/BL_Stuff/testVideo_1-2_compression.mp4'
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
@@ -99,29 +99,29 @@ if __name__ == "__main__":
     #               flags=('FFTW_MEASURE', ),
     #               threads=1,
     #               planning_timelimit=None)
-    fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                    axes=(-2, -1),
-                                    direction='FFTW_FORWARD',
-                                    flags=('FFTW_MEASURE', ),
-                                    threads=multiprocessing.cpu_count(),
-                                    planning_timelimit=None)
-
-    fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                    axes=(-2, -1),
-                                    direction='FFTW_FORWARD',
-                                    flags=('FFTW_MEASURE', ),
-                                    threads=multiprocessing.cpu_count(),
-                                    planning_timelimit=None)
-
-    ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                   pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-                                   axes=(-2, -1),
-                                   direction='FFTW_BACKWARD',
-                                   flags=('FFTW_MEASURE', ),
-                                   threads=multiprocessing.cpu_count(),
-                                   planning_timelimit=None)
+    # fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                 pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                 axes=(-2, -1),
+    #                                 direction='FFTW_FORWARD',
+    #                                 flags=('FFTW_MEASURE', ),
+    #                                 threads=multiprocessing.cpu_count(),
+    #                                 planning_timelimit=None)
+    #
+    # fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                 pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                 axes=(-2, -1),
+    #                                 direction='FFTW_FORWARD',
+    #                                 flags=('FFTW_MEASURE', ),
+    #                                 threads=multiprocessing.cpu_count(),
+    #                                 planning_timelimit=None)
+    #
+    # ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+    #                                axes=(-2, -1),
+    #                                direction='FFTW_BACKWARD',
+    #                                flags=('FFTW_MEASURE', ),
+    #                                threads=multiprocessing.cpu_count(),
+    #                                planning_timelimit=None)
 
     # Initialize displacement & scaling vectors
     dispX = zeros([imgProp['nframes'], 1])
@@ -130,10 +130,16 @@ if __name__ == "__main__":
     iterthresh = float(25)
     errthresh = float(1E-1)
 
+    # for i in frng:
+    #     scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, vid.get_data(frng[0])[:, :, 0].reshape(yResample, xResample),
+    #                                                         vid.get_data(i)[:, :, 0].reshape(yResample, xResample),
+    #                                                         Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
+
     for i in frng:
-        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, vid.get_data(frng[0])[:, :, 0].reshape(yResample, xResample),
-                                                            vid.get_data(i)[:, :, 0].reshape(yResample, xResample),
+        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(vid.get_data(frng[0]).reshape(yResample, xResample, 3), 2),
+                                                            np.max(vid.get_data(i).reshape(yResample, xResample, 3), 2),
                                                             Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
+
 
     ###############################################################################
     #############     DETECT EYE IN REGISTERED IMAGES     #########################
@@ -194,11 +200,11 @@ if __name__ == "__main__":
             WinDims[i, 1] += peakLocs[1].mean()
             # WinDims[i, 2] += (eyes[0, 3]) / 2
             # WinDims[i, 3] += (eyes[0, 2]) / 2
-            WinDims[i, 2] += 128
-            WinDims[i, 3] += 128
+            WinDims[i, 2] += 256
+            WinDims[i, 3] += 256
         # Only use when skipping the haar classifier - FOR ARTIFICIAL DATA
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
-                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), 128, 128))
+                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
 
 
     ###############################################################################
@@ -242,12 +248,15 @@ if __name__ == "__main__":
     fr01 = zeros([cropWin[2], cropWin[3]])
     fr02 = zeros([cropWin[2], cropWin[3]])
     iterthresh = float(100)
-    errthresh = float(1E-4)
+    errthresh = float(1E-2)
     dispx = zeros([imgProp['nframes'], 1])
     dispy = zeros([imgProp['nframes'], 1])
     sclPix = zeros([imgProp['nframes'], 1])
 
-    for i in arange(1, len(frng)-2, 1):
+    # For single frame testing
+    # for i in arange(11, 12, 1):
+
+    for i in arange(1, len(frng) - 2, 1):
         # Build forward transform
         Tforward[0, 0] = pow(fmcMaxRad, -scldisp[frng[i + 1]] / xResample)
         Tforward[1, 1] = pow(fmcMaxRad, -scldisp[frng[i + 1]] / xResample)
@@ -261,14 +270,18 @@ if __name__ == "__main__":
         Treverse[1, 2] = (1 - Treverse[1, 1])*yResample / 2 + dispY[frng[i - 1]]
 
         # Transform reference & current frame to reference position, convert to 8U
-        current = cv2.warpAffine(vid.get_data(frng[i+1]).reshape(yResample, xResample, 3),
+        current = cv2.warpAffine(vid.get_data(frng[i + 1]).reshape(yResample, xResample, 3),
                 Tforward[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
-        reference = cv2.warpAffine(vid.get_data(frng[i-1]).reshape(yResample, xResample, 3),
+        reference = cv2.warpAffine(vid.get_data(frng[i - 1]).reshape(yResample, xResample, 3),
                 Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
 
         # For ARTIFICAL eyes
+        # HeightRange = np.arange((cropWin[0] - cropWin[2]), (cropWin[0] + cropWin[2]), 1).astype(int)
+        # WidthRange = np.arange((cropWin[1] - cropWin[3]), (cropWin[1] + cropWin[3]), 1).astype(int)
+
+        # For NON-ARTIFICIAL eyes
         HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
-        WidthRange = np.arange((cropWin[1] - cropWin[3]) / 2, (cropWin[1] + cropWin[3] / 2), 1).astype(int)
+        WidthRange = np.arange((cropWin[1] - cropWin[3] / 2), (cropWin[1] + cropWin[3] / 2), 1).astype(int)
 
         curROI = current[HeightRange, :, :]
         curROI = curROI[:, WidthRange, :]
@@ -277,12 +290,12 @@ if __name__ == "__main__":
         refROI = refROI[:, WidthRange, :]
 
         # Convert to HSV & Histogram Equalize
-        curROI = cv2.cvtColor(curROI, cv2.COLOR_RGB2Lab)
-        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:, :, 0])).astype(float)
-        refROI = cv2.cvtColor(refROI, cv2.COLOR_RGB2Lab)
-        refroi = cv2.bitwise_not(cv2.equalizeHist(refROI[:, :, 0])).astype(float)
+        curROI = cv2.cvtColor(curROI, cv2.COLOR_RGB2HSV)
+        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:, :, 2])).astype(float)
+        refROI = cv2.cvtColor(refROI, cv2.COLOR_RGB2HSV)
+        refroi = cv2.bitwise_not(cv2.equalizeHist(refROI[:, :, 2])).astype(float)
 
-        sclPix, dispX, dispY, fr01, fr02 = spatialRegister(i, curroi, refroi, win2D, fmcmaxrad, errthresh,
+        sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, curroi, refroi, win2D, fmcmaxrad, errthresh,
                                                            iterthresh, dispx, dispy, sclPix)
 
     sclPix

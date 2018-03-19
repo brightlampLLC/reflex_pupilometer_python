@@ -512,7 +512,7 @@ if __name__ == "__main__":
 
         # For ARTIFICAL eyes
         HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
-        WidthRange = np.arange((cropWin[1] - cropWin[3]) / 2, (cropWin[1] + cropWin[3] / 2), 1).astype(int)
+        WidthRange = np.arange((cropWin[1] - cropWin[3] / 2), (cropWin[1] + cropWin[3] / 2), 1).astype(int)
 
         curROI = current[HeightRange, :, :]
         curROI = curROI[:, WidthRange, :]
