@@ -33,7 +33,6 @@ import matplotlib.pyplot as plt
 # from numba import jit
 # from pdb import set_trace as keyboard
 from numpy import where, array, mod, log, exp, stack, multiply, arange, sqrt, zeros, conj
-from scipy.signal import hanning
 from pdb import set_trace as keyboard
 from pandas import rolling_median
 
@@ -42,8 +41,6 @@ from pandas import rolling_median
 # from reflex_pupilometer_python.scripts.Hampel import hampel
 from reflex_pupilometer_python.scripts.Hanning_Window import hanningWindow
 from reflex_pupilometer_python.scripts.Dilation_Register import spatialRegister
-# from reflex_pupilometer_python.scripts.Detect_Eye_Registered_Images import
-# from reflex_pupilometer_python.scripts.Pupil_Dilation_Registered_Images import
 
 # Load Eye Cascade
 eye_cascade = cv2.CascadeClassifier('/Users/JonHolt/Desktop/BL_Stuff/haarcascade_eye.xml')
