@@ -2,7 +2,7 @@
 #   Name: Dilation_Register
 #   Purpose: Registers the dilation of the pupil in the video
 #
-#   !/usr/bin/env python3
+#   !/usr/scripts/env python3
 #   -*- coding: utf-8 -*-
 #
 #   Created on Tue Mar 18 22:14:12 2018
@@ -13,8 +13,20 @@
 import cv2
 import numpy as np
 import scipy as sp
+import imageio
+import pyfftw
+import multiprocessing
 
 from numpy import log, multiply, sqrt, conj
+from reflex_pupilometer_python.scripts.SubPixel2D import subPixel2D
+from reflex_pupilometer_python.scripts.Hanning_Window import hanningWindow
+
+# Set Image Directory
+filename = '/Users/JonHolt/Desktop/BL_Stuff/testVideo_1-1_compression.mp4'
+
+# filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
+# "Read" the video
+vid = imageio.get_reader(filename, 'ffmpeg')
 
 
 def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, dispX, dispY, scldisp):
@@ -23,6 +35,34 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
     iteration = 0
     TRev = np.eye(3, dtype=float)
     TFor = np.eye(3, dtype=float)
+    imgProp = vid.get_meta_data(index=None)
+    xResample = imgProp['size'][1]
+    yResample = imgProp['size'][0]
+    Win2D = hanningWindow([yResample, xResample])
+
+    fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    axes=(-2, -1),
+                                    direction='FFTW_FORWARD',
+                                    flags=('FFTW_MEASURE',),
+                                    threads=multiprocessing.cpu_count(),
+                                    planning_timelimit=None)
+
+    fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                    axes=(-2, -1),
+                                    direction='FFTW_FORWARD',
+                                    flags=('FFTW_MEASURE',),
+                                    threads=multiprocessing.cpu_count(),
+                                    planning_timelimit=None)
+
+    ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                   pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
+                                   axes=(-2, -1),
+                                   direction='FFTW_BACKWARD',
+                                   flags=('FFTW_MEASURE',),
+                                   threads=multiprocessing.cpu_count(),
+                                   planning_timelimit=None)
 
     while all((errval > errthresh, iteration < iterthresh)):
         # Reconstruct images based on transform matrices

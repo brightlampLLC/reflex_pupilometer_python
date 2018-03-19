@@ -6,7 +6,7 @@
 #            k= number of items in window/2 (# forward and backward wanted to capture in median filter)
 #            t0= number of standard deviations to use; 3 is default
 #
-#   !/usr/bin/env python3
+#   !/usr/scripts/env python3
 #   -*- coding: utf-8 -*-
 #
 #   Created on Tue Mar 18 22:14:12 2018

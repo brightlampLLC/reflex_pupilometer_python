@@ -2,7 +2,7 @@
 #   Name: SubPixel2D
 #   Purpose: Finds location of peaks in the correlation
 #
-#   !/usr/bin/env python3
+#   !/usr/scripts/env python3
 #   -*- coding: utf-8 -*-
 #
 #   Created on Tue Mar 18 22:14:12 2018
