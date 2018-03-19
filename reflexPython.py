@@ -514,11 +514,25 @@ if __name__ == "__main__":
             reference = cv2.warpAffine(vid.get_data(frng[i-1]).reshape(yResample, xResample, 3),
                     Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
 
-            # Crop regions using window elements identified in previous step
-            curROI = current[(cropWin[0] - cropWin[2] / 2):(cropWin[0] + cropWin[2] / 2),
-                                    (cropWin[1] - cropWin[3] / 2):(cropWin[1]+cropWin[3] / 2), :]
-            refROI = reference[(cropWin[0] - cropWin[2]/2):(cropWin[0] + cropWin[2] / 2),
-                                    (cropWin[1] - cropWin[3] / 2):(cropWin[1]+cropWin[3] / 2), :]
+            # For Haar detector
+            # HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
+            # WidthRange = np.arange((cropWin[1] - cropWin[3] / 2), (cropWin[1] + cropWin[3] / 2), 1).astype(int)
+            #
+            # curROI = current[HeightRange, :, :]
+            # curROI[:, WidthRange, :]
+            #
+            # refROI = current[HeightRange, :, :]
+            # refROI[:, WidthRange, :]
+
+            # For ARTIFICAL eyes
+            HeightRange = np.arange((cropWin[0] - cropWin[2]), (cropWin[0] + cropWin[2]), 1).astype(int)
+            WidthRange = np.arange((cropWin[1] - cropWin[3]), (cropWin[1] + cropWin[3]), 1).astype(int)
+
+            curROI = current[HeightRange, :, :]
+            curROI[:, WidthRange, :]
+
+            refROI = current[HeightRange, :, :]
+            refROI[:, WidthRange, :]
 
             # Convert to HSV & Histogram Equalize
             curROI = cv2.cvtColor(curROI, cv2.COLOR_RGB2Lab)
