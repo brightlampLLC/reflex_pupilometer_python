@@ -29,6 +29,23 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
     xResample = frame01.shape[1]
     yResample = frame01.shape[0]
 
+    # Generate FFTW objects - https://hgomersall.github.io/pyFFTW/pyfftw/pyfftw.html
+    #   Parameters:
+    #       input_array - Return the input array that is associated with the FFTW instance.
+    #       output_array - Return the output array that is associated with the FFTW instance.
+    #       axes – Return the axes for the planned FFT in canonical form, as a tuple of positive integers.
+    #       direction – Return the planned FFT direction. Either ‘FFTW_FORWARD’ or ‘FFTW_BACKWARD’.
+    #       flags – Return which flags were used to construct the FFTW object.
+    #       threads – Tells the wrapper how many threads to use when invoking FFTW, with a default of 1.
+    #       planning_timelimit - Indicates the maximum number of seconds it should spend planning the FFT.
+    # Example:
+    #   pyfftw.FFTW(input_array,
+    #               output_array,
+    #               axes=(-1, ),
+    #               direction='FFTW_FORWARD',
+    #               flags=('FFTW_MEASURE', ),
+    #               threads=1,
+    #               planning_timelimit=None)
     fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
                                     pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
                                     axes=(-2, -1),
