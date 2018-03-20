@@ -47,9 +47,9 @@ eye_cascade = cv2.CascadeClassifier('/Users/JonHolt/Desktop/BL_Stuff/haarcascade
 
 pyfftw.interfaces.cache.enable()
 
-    ###############################################################################
-    ##################  LOAD VIDEO FROM CURRENT PWD  ##############################
-    ###############################################################################
+###############################################################################
+##################         MAIN FUNCTION         ##############################
+###############################################################################
 
 
 if __name__ == "__main__":
@@ -82,47 +82,6 @@ if __name__ == "__main__":
     fmcNoOfWedges = yResample
     Win2D = hanningWindow([yResample, xResample])
 
-    # Generate FFTW objects - https://hgomersall.github.io/pyFFTW/pyfftw/pyfftw.html
-    #   Parameters:
-    #       input_array - Return the input array that is associated with the FFTW instance.
-    #       output_array - Return the output array that is associated with the FFTW instance.
-    #       axes – Return the axes for the planned FFT in canonical form, as a tuple of positive integers.
-    #       direction – Return the planned FFT direction. Either ‘FFTW_FORWARD’ or ‘FFTW_BACKWARD’.
-    #       flags – Return which flags were used to construct the FFTW object.
-    #       threads – Tells the wrapper how many threads to use when invoking FFTW, with a default of 1.
-    #       planning_timelimit - Indicates the maximum number of seconds it should spend planning the FFT.
-    # Example:
-    #   pyfftw.FFTW(input_array,
-    #               output_array,
-    #               axes=(-1, ),
-    #               direction='FFTW_FORWARD',
-    #               flags=('FFTW_MEASURE', ),
-    #               threads=1,
-    #               planning_timelimit=None)
-    # fft01FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                 pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                 axes=(-2, -1),
-    #                                 direction='FFTW_FORWARD',
-    #                                 flags=('FFTW_MEASURE', ),
-    #                                 threads=multiprocessing.cpu_count(),
-    #                                 planning_timelimit=None)
-    #
-    # fft02FullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                 pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                 axes=(-2, -1),
-    #                                 direction='FFTW_FORWARD',
-    #                                 flags=('FFTW_MEASURE', ),
-    #                                 threads=multiprocessing.cpu_count(),
-    #                                 planning_timelimit=None)
-    #
-    # ifftFullImageObj = pyfftw.FFTW(pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                pyfftw.empty_aligned((yResample, xResample), dtype='complex128'),
-    #                                axes=(-2, -1),
-    #                                direction='FFTW_BACKWARD',
-    #                                flags=('FFTW_MEASURE', ),
-    #                                threads=multiprocessing.cpu_count(),
-    #                                planning_timelimit=None)
-
     # Initialize displacement & scaling vectors
     dispX = zeros([imgProp['nframes'], 1])
     dispY = zeros([imgProp['nframes'], 1])
@@ -130,16 +89,10 @@ if __name__ == "__main__":
     iterthresh = float(25)
     errthresh = float(1E-1)
 
-    # for i in frng:
-    #     scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, vid.get_data(frng[0])[:, :, 0].reshape(yResample, xResample),
-    #                                                         vid.get_data(i)[:, :, 0].reshape(yResample, xResample),
-    #                                                         Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
-
     for i in frng:
         scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(vid.get_data(frng[0]).reshape(yResample, xResample, 3), 2),
                                                             np.max(vid.get_data(i).reshape(yResample, xResample, 3), 2),
                                                             Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
-
 
     ###############################################################################
     #############     DETECT EYE IN REGISTERED IMAGES     #########################
@@ -206,10 +159,10 @@ if __name__ == "__main__":
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
                   % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
 
-
     ###############################################################################
     #############     PUPIL DILATION OF REGISTERED IMAGES     #####################
     ###############################################################################
+
     cropWin = np.round(np.median(WinDims[frng, :], axis=0)).astype(int)
     timeVector = arange(0, imgProp['nframes'], 1) / vid.get_meta_data()['fps']
     timeStep = np.gradient(frng) / vid.get_meta_data()['fps']
@@ -298,4 +251,5 @@ if __name__ == "__main__":
         sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, curroi, refroi, win2D, fmcmaxrad, errthresh,
                                                            iterthresh, dispx, dispy, sclPix)
 
+    # DEBUG POINT
     sclPix
