@@ -103,10 +103,10 @@ if __name__ == "__main__":
     # Initialize window size & window center vectors
     WinDims = zeros([imgProp['nframes'], 4], dtype=int)
 
-    # Run Haar Cascade classifier to find image center & window size per frame
     # Build Transform
     T1 = np.eye(3, dtype=float)
 
+    # Run Haar Cascade classifier to find image center & window size per frame
     detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample, dispX, dispY, scldisp)
 
     ###############################################################################
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     sclPix = zeros([imgProp['nframes'], 1])
 
     # For single frame testing
-    # for i in arange(11, 12, 1):
+    # for i in arange("desired frame", "next frame", 1):
 
     for i in arange(1, len(frng) - 2, 1):
         # Build forward transform
@@ -178,10 +178,6 @@ if __name__ == "__main__":
         reference = cv2.warpAffine(vid.get_data(frng[i - 1]).reshape(yResample, xResample, 3),
                 Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
 
-        # For ARTIFICAL eyes
-        # HeightRange = np.arange((cropWin[0] - cropWin[2]), (cropWin[0] + cropWin[2]), 1).astype(int)
-        # WidthRange = np.arange((cropWin[1] - cropWin[3]), (cropWin[1] + cropWin[3]), 1).astype(int)
-
         # For NON-ARTIFICIAL eyes
         HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
         WidthRange = np.arange((cropWin[1] - cropWin[3] / 2), (cropWin[1] + cropWin[3] / 2), 1).astype(int)
@@ -200,6 +196,5 @@ if __name__ == "__main__":
 
         sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, curroi, refroi, win2D, fmcmaxrad, errthresh,
                                                            iterthresh, dispx, dispy, sclPix)
-
     # DEBUG POINT
     sclPix
