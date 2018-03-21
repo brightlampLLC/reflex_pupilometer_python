@@ -10,14 +10,20 @@
 #   @author: jonholt
 # ----------------------------------------------------------------------------------------------------------------------
 
+import sys
 import cv2
+import pyfftw
+import imageio
 import numpy as np
 import scipy as sp
-import pyfftw
 import multiprocessing
+import pylab
+import numba
+import pandas
+import matplotlib.pyplot as plt
 
 from numpy import log, multiply, sqrt, conj
-from reflex_pupilometer_python.scripts.SubPixel2D import subPixel2D
+from scripts.SubPixel2D import subPixel2D
 
 
 def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, dispX, dispY, scldisp):
