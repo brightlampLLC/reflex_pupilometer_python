@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-#   Name: Haar_Cascade
+#   Name: Haar Cascade
 #   Purpose: Finds image center & window size per frame
 #
 #   !/usr/scripts/env python3
@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from numpy import where, zeros
 
 
-def eye_cascade(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample, dispX, dispY, scldisp):
+def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample, dispX, dispY, scldisp):
     for i in frng:
         # Build Transform
         T1[0, 0] = pow(fmcMaxRad, -scldisp[i] / xResample)

@@ -41,7 +41,7 @@ from pandas import rolling_median
 # from reflex_pupilometer_python.scripts.Hampel import hampel
 from scripts.Hanning_Window import hanningWindow
 from scripts.Dilation_Register import spatialRegister
-from scripts.Haar_Cascade import eye_cascade
+from scripts.Haar_Cascade import detect_eye
 
 
 # Load Eye Cascade
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     # Build Transform
     T1 = np.eye(3, dtype=float)
 
-    eye_cascade(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample, dispX, dispY, scldisp)
+    detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample, dispX, dispY, scldisp)
 
     ###############################################################################
     #############     PUPIL DILATION OF REGISTERED IMAGES     #####################
