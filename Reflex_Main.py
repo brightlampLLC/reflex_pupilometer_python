@@ -118,30 +118,6 @@ if __name__ == "__main__":
     timeStep = np.gradient(frng) / vid.get_meta_data()['fps']
     frmStep = np.gradient(frng)
 
-    fft01FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                              pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                              axes=(-2, -1),
-                              direction='FFTW_FORWARD',
-                              flags=('FFTW_MEASURE', ),
-                              threads=multiprocessing.cpu_count(),
-                              planning_timelimit=None)
-
-    fft02FMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                              pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                              axes=(-2, -1),
-                              direction='FFTW_FORWARD',
-                              flags=('FFTW_MEASURE', ),
-                              threads=multiprocessing.cpu_count(),
-                              planning_timelimit=None)
-
-    ifftFMCObj = pyfftw.FFTW(pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                             pyfftw.empty_aligned((cropWin[2], cropWin[3]), dtype='complex128'),
-                             axes=(-2, -1),
-                             direction='FFTW_BACKWARD',
-                             flags=('FFTW_MEASURE', ),
-                             threads=multiprocessing.cpu_count(),
-                             planning_timelimit=None)
-
     win2D = hanningWindow([cropWin[2], cropWin[3]])
     Tforward = np.eye(3, dtype=float)
     Treverse = np.eye(3, dtype=float)
@@ -174,9 +150,9 @@ if __name__ == "__main__":
 
         # Transform reference & current frame to reference position, convert to 8U
         current = cv2.warpAffine(vid.get_data(frng[i + 1]).reshape(yResample, xResample, 3),
-                Tforward[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+                Tforward[0:2, :], (xResample, yResample), cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
         reference = cv2.warpAffine(vid.get_data(frng[i - 1]).reshape(yResample, xResample, 3),
-                Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+                Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
 
         # For NON-ARTIFICIAL eyes
         HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
@@ -190,11 +166,11 @@ if __name__ == "__main__":
 
         # Convert to HSV & Histogram Equalize
         curROI = cv2.cvtColor(curROI, cv2.COLOR_RGB2HSV)
-        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:, :, 2])).astype(float)
+        curroi = cv2.bitwise_not(cv2.equalizeHist(curROI[:, :, 2]))
         refROI = cv2.cvtColor(refROI, cv2.COLOR_RGB2HSV)
-        refroi = cv2.bitwise_not(cv2.equalizeHist(refROI[:, :, 2])).astype(float)
+        refroi = cv2.bitwise_not(cv2.equalizeHist(refROI[:, :, 2]))
 
-        sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, curroi, refroi, win2D, fmcmaxrad, errthresh,
+        sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, refroi, curroi, win2D, fmcmaxrad, errthresh,
                                                            iterthresh, dispx, dispy, sclPix)
     # DEBUG POINT
     sclPix
