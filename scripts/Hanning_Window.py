@@ -32,4 +32,5 @@ def hanningWindow(insize):
     hannWinX[0, :] = hanning(insize[1], sym=True)
     hannWinY[:, 0] = hanning(insize[0], sym=True)
     hannWin2D = hannWinY.dot(hannWinX)
+
     return hannWin2D

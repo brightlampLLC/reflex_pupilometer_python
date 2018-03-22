@@ -41,4 +41,5 @@ def hampel(x,k, t0=3):
         S0 = L * np.nanmedian(np.abs(x[(i - k):(i + k + 1)] - x0))
         if np.abs(x[i] - x0) > t0 * S0:
             y[i] = x0
+
     return y

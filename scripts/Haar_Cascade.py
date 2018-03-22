@@ -78,6 +78,6 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
             WinDims[i, 3] += 256
         # Only use when skipping the haar classifier - FOR ARTIFICIAL DATA
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
-                  % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
+              % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
 
-    return(eyes)
+    return eyes

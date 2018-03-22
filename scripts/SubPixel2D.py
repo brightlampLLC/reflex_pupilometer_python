@@ -50,4 +50,5 @@ def subPixel2D(plane):
                     peakLocs[1][0] + 0])) / (2 * (log(plane[peakLocs[0][0] - 1,
                     peakLocs[1][0] - 0]) + log(plane[peakLocs[0][0] + 1,
                     peakLocs[1][0] + 0]) - 2 * log(plane[peakLocs[0][0] - 0, peakLocs[1][0] - 0])))
+
     return disp
