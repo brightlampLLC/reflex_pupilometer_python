@@ -46,7 +46,7 @@ def LPGrid(nx, ny, rmin, rmax, nwedges, nring):
     yZero = (ny + 0.5) / 2
 
     # Log R coordinate space
-    rv = np.exp( np.linspace( np.log(rmin), np.log(rmax), nring))
+    rv = np.exp(np.linspace(np.log(rmin), np.log(rmax), nring))
 
     # Angular coordinate vector
     thv = np.linspace(0, 2 * np.pi * (1 - 1 / nwedges), nwedges)
@@ -75,13 +75,14 @@ def tformImg(x, y, M, nX, nY, img):
     X[:, 0] = x.flatten('C')
     Y[:, 0] = y.flatten('C')
 
-    # Build Nx3 matrix [X,Y,Z]
+    # Build Nx3 matrix [X, Y, Z]
     inputPoints = np.column_stack((X, Y, Z)).T
     interpPoints = np.linalg.lstsq(M, inputPoints)[0]
     interpImg = np.empty_like(x)
     X = np.reshape(interpPoints[0, :], (nY, nX))
     Y = np.reshape(interpPoints[1, :], (nY, nX))
-    sp.ndimage.interpolation.map_coordinates(img, [Y + nY / 2 - 0.5, X + nX / 2 - 0.5],
+    sp.ndimage.interpolation.map_coordinates(img,
+                                             [Y + nY / 2 - 0.5, X + nX / 2 - 0.5],
                                              output=interpImg,
                                              order=1,
                                              mode='constant',
@@ -94,9 +95,12 @@ def tformImg(x, y, M, nX, nY, img):
 def tformLP(x, y, xLP, yLP, nX, nY, img):
     # Log Polar Transform
     interpImg = np.empty_like(xLP)
-    sp.ndimage.interpolation.map_coordinates(img, [yLP, xLP],
-                                             output=interpImg, order=1,
-                                             mode='constant', cval=0.0,
+    sp.ndimage.interpolation.map_coordinates(img,
+                                             [yLP, xLP],
+                                             output=interpImg,
+                                             order=1,
+                                             mode='constant',
+                                             cval=0.0,
                                              prefilter=True)
 
     return interpImg
