@@ -78,13 +78,17 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
 
     while all((errval > errthresh, iteration < iterthresh)):
         # Reconstruct images based on transform matrices
-        fr01 = cv2.warpAffine(frame01.astype(float), TFor[0:2, :], (xResample, yResample),
-                              cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS).astype(float)
+        fr01 = cv2.warpAffine(frame01.astype(float),
+                              TFor[0:2, :],
+                              (xResample, yResample),
+                              cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS).astype(float)
         fr01 = np.nan_to_num(fr01)
         fr01 -= fr01.mean(axis=(0, 1))
         fr01 = multiply(fr01, Win2D)
-        fr02 = cv2.warpAffine(frame02.astype(float), TRev[0:2, :], (xResample, yResample),
-                              cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS).astype(float)
+        fr02 = cv2.warpAffine(frame02.astype(float),
+                              TRev[0:2, :],
+                              (xResample, yResample),
+                              cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS).astype(float)
         fr02 = np.nan_to_num(fr02)
         fr02 -= fr02.mean(axis=(0, 1))
         fr02 = multiply(fr02, Win2D)
@@ -94,10 +98,14 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
         FFT02 = sp.fftpack.fftshift(fft02FullImageObj(fr02))
 
         # Run FMT on FFTs
-        FMT01 = multiply(Win2D, cv2.logPolar(abs(FFT01).astype(float), (FFT01.shape[1] / 2, FFT01.shape[0] / 2),
-               FFT01.shape[1] / log(MaxRad), flags = cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
-        FMT02 = multiply(Win2D, cv2.logPolar(abs(FFT02).astype(float), (FFT02.shape[1] / 2, FFT02.shape[0] / 2),
-               FFT02.shape[1] / log(MaxRad), flags = cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
+        FMT01 = multiply(Win2D, cv2.logPolar(abs(FFT01).astype(float),
+                                             (FFT01.shape[1] / 2, FFT01.shape[0] / 2),
+                                             FFT01.shape[1] / log(MaxRad),
+                                             flags=cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
+        FMT02 = multiply(Win2D, cv2.logPolar(abs(FFT02).astype(float),
+                                             (FFT02.shape[1] / 2, FFT02.shape[0] / 2),
+                                             FFT02.shape[1] / log(MaxRad),
+                                             flags=cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
 
         # Calculate FFTs of FMTs
         FMC01 = fft01FullImageObj(FMT01)

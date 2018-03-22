@@ -37,7 +37,7 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
         curframe = cv2.warpAffine(vid.get_data(i).reshape(yResample, xResample, 3),
                                   T1[0:2, :],
                                   (xResample, yResample),
-                                  cv2.INTER_LINEAR+cv2.WARP_FILL_OUTLIERS)
+                                  cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
         curframe[np.where(curframe == 0)] = 255
         blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
         peakLocs = where(blurframe == blurframe.max())
@@ -61,11 +61,11 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
         #                                            minSize[,
         #                                            maxSize]]]]])
         eyes = cascade.detectMultiScale(curframe,
-                                            scaleFactor=1.1,
-                                            minNeighbors=5,
-                                            flags=0,
-                                            minSize=(int(np.min([yResample, xResample]) / 4),
-                                                     int(np.min([yResample, xResample]) / 4)))
+                                        scaleFactor=1.1,
+                                        minNeighbors=5,
+                                        flags=0,
+                                        minSize=(int(np.min([yResample, xResample]) / 4),
+                                                 int(np.min([yResample, xResample]) / 4)))
 
         # If eye is found, use Gaussian fitting function to find pupil center
         if len(eyes) == 0:

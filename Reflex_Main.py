@@ -150,9 +150,13 @@ if __name__ == "__main__":
 
         # Transform reference & current frame to reference position, convert to 8U
         current = cv2.warpAffine(vid.get_data(frng[i + 1]).reshape(yResample, xResample, 3),
-                Tforward[0:2, :], (xResample, yResample), cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
+                                 Tforward[0:2, :],
+                                 (xResample, yResample),
+                                 cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
         reference = cv2.warpAffine(vid.get_data(frng[i - 1]).reshape(yResample, xResample, 3),
-                Treverse[0:2, :], (xResample, yResample), cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
+                                   Treverse[0:2, :],
+                                   (xResample, yResample),
+                                   cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
 
         # For NON-ARTIFICIAL eyes
         HeightRange = np.arange((cropWin[0] - cropWin[2] / 2), (cropWin[0] + cropWin[2] / 2), 1).astype(int)
