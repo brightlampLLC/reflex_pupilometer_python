@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def hampel(x,k, t0=3):
+def hampel(x, k, t0=3):
     n = len(x)
     # y is the corrected series
     y = x

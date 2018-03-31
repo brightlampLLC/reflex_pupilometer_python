@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------------------------------------------------
 #   Name: Coordinate_Transform
-#   Purpose: Creates coordination transform - replaces "cv.logpolar" call in Dilation_Register
+#   Purpose: Creates coordination transform - replaces "cv2.logpolar" call in Dilation_Register
 #
 #   !/usr/scripts/env python3
 #   -*- coding: utf-8 -*-
