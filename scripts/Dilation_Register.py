@@ -38,6 +38,13 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
     xResample = frame01.shape[1]
     yResample = frame01.shape[0]
 
+    # Construct Log Polar Grid
+    imgLPX, imgLPY = LPGrid(xResample, yResample, 1, MaxRad, np.max([xResample, yResample]), np.min([xResample, yResample]))
+
+    # Generate meshgrid
+    imgX, imgY = np.meshgrid(np.linspace(-xResample / 2 + 0.5, xResample / 2 - 0.5, xResample),
+                             np.linspace(-yResample / 2 + 0.5, yResample / 2 - 0.5, yResample))
+
     # Generate FFTW objects - https://hgomersall.github.io/pyFFTW/pyfftw/pyfftw.html
     #   Parameters:
     #       input_array - Return the input array that is associated with the FFTW instance.
@@ -100,15 +107,13 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
         FFT01 = sp.fftpack.fftshift(fft01FullImageObj(fr01))
         FFT02 = sp.fftpack.fftshift(fft02FullImageObj(fr02))
 
+        # Log Polar Unwrap
+        lp01 = (tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], np.abs(FFT01).astype(float)))
+        lp02 = (tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], np.abs(FFT02).astype(float)))
+
         # Run FMT on FFTs
-        FMT01 = multiply(Win2D, cv2.logPolar(abs(FFT01).astype(float),
-                                             (FFT01.shape[1] / 2, FFT01.shape[0] / 2),
-                                             FFT01.shape[1] / log(MaxRad),
-                                             flags=cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
-        FMT02 = multiply(Win2D, cv2.logPolar(abs(FFT02).astype(float),
-                                             (FFT02.shape[1] / 2, FFT02.shape[0] / 2),
-                                             FFT02.shape[1] / log(MaxRad),
-                                             flags=cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)).astype(float)
+        FMT01 = multiply(Win2D, lp01).astype(float)
+        FMT02 = multiply(Win2D, lp02).astype(float)
 
         # Calculate FFTs of FMTs
         FMC01 = fft01FullImageObj(FMT01)
@@ -147,157 +152,3 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
                  pow(MaxRad, -scldisp[i] / frame01.shape[1]), errval))
 
     return scldisp, dispX, dispY, fr01, fr02
-
-
-############## NEW FUNCTIONS (NEED TO BE IMPLEMENTED / REPLACE ABOVE FUNCTION) ##############
-
-
-def FMC(fr01, fr02, MinRad, MaxRad, NoOfWedges, NoOfRings, sdx):
-    nX = fr01.shape[1]
-    nY = fr01.shape[0]
-
-    # Construct Log Polar Grid
-    imgLPX, imgLPY = LPGrid(nX, nY, MinRad, MaxRad, NoOfWedges, NoOfRings)
-
-    # Generate meshgrid
-    imgX, imgY = np.meshgrid(np.linspace(-nX / 2 + 0.5, nX / 2 - 0.5, nX), np.linspace(-nY / 2 + 0.5, nY / 2 - 0.5, nY))
-    WinLP = hanningWindow(imgLPX.shape)
-    Win2D = hanningWindow(fr02.shape)
-    ccSpectral = np.zeros([imgLPX.shape[0], imgLPX.shape[1]])
-
-    if len(fr01.shape) == 2:
-        # Take magnitude of FFT of images
-        mFFT01 = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(np.multiply(Win2D, fr01 - np.mean(fr01.flatten())))))
-        mFFT02 = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(np.multiply(Win2D, fr02 - np.mean(fr02.flatten())))))
-
-        # Log Polar Unwrap
-        lp01 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], mFFT01))
-        lp02 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], mFFT02))
-
-        # Take FFTs of the images
-        FFT01 = sp.fftpack.fft2(np.multiply(WinLP, lp01))
-        FFT02 = sp.fftpack.fft2(np.multiply(WinLP, lp02))
-
-        # Cross-correlate
-        ccSpectral = np.multiply(FFT01, np.conj(FFT02))
-
-    else:
-        for i in np.arange(0, fr01.shape[2], 1):
-            # Take magnitude of FFT of images
-            mFFT01 = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(np.multiply(Win2D, fr01[:, :, i] -
-                                                                            np.mean(fr01[:, :, i].flatten())))))
-
-            mFFT02 = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(np.multiply(Win2D, fr02[:, :, i] -
-                                                                            np.mean(fr02[:, :, i].flatten())))))
-
-            # Log Polar Unwrap
-            lp01 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], mFFT01))
-            lp02 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0], mFFT02))
-
-            # Take FFTs of the images
-            FFT01 = sp.fftpack.fft2(np.multiply(WinLP, lp01))
-            FFT02 = sp.fftpack.fft2(np.multiply(WinLP, lp02))
-
-            # Cross-correlate
-            ccSpectral = ccSpectral + np.multiply(FFT01, np.conj(FFT02))
-
-    # Tranform back to spatial domain, perform shift
-    ccSpatial = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(ccSpectral)))
-
-    # Find location of peak in correlation
-    peakLocs = np.where(ccSpatial == np.max(ccSpatial.flatten('C')))
-    offsets = np.array([0, 0])
-
-    if np.mod(ccSpatial.shape[0], 2) != 0:
-        offsets[0] = -0.5
-
-    if np.mod(ccSpatial.shape[1], 2) != 0:
-        offsets[1] = -0.5
-
-    # Perform subpixel fitting
-    disp = subPix2D(ccSpatial, peakLocs, offsets)
-
-    # Update Scale Value
-    sdx -= disp[1]
-    stemp = disp[1]
-    scale = np.exp(1 * np.log(MaxRad / MinRad) * sdx / (nX - 1))
-
-    return scale, sdx, stemp
-
-
-def LPC(fr01, fr02, MinRad, MaxRad, NoOfWedges, NoOfRings, sdx):
-    nX = fr01.shape[1]
-    nY = fr01.shape[0]
-
-    # Construct Log Polar Grid
-    imgLPX, imgLPY = LPGrid(nX, nY, MinRad, MaxRad, NoOfWedges, NoOfRings)
-
-    # Generate meshgrid
-    imgX, imgY = np.meshgrid(np.linspace(-nX / 2 + 0.5, nX / 2 - 0.5, nX). np.linspace(-nY / 2 + 0.5, nY / 2 - 0.5, nY))
-    WinLP = hanningWindow(imgLPX.shape)
-    Win2D = hanningWindow(fr02.shape)
-    ccSpectral = np.zeros([imgLPX.shape[0], imgLPX.shape[1]])
-
-    if len(fr01.shape) == 2:
-        # Log Polar Unwrap
-        lp01 = tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0],
-                       np.multiply(Win2D, fr01 - np.mean(fr01.flatten())))
-        lp02 = tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0],
-                       np.multiply(Win2D, fr02 - np.mean(fr02.flatten())))
-
-        # lp01 = cv2.logPolar(fr01-np.mean(fr01.flatten()), (nY / 2, nX / 2), nX / np.log(MaxRad), cv2.INTER_LINEAR)
-        # lp02 = cv2.logPolar(fr02-np.mean(fr02.flatten()), (nY / 2, nX / 2), nX / np.log(MaxRad), cv2.INTER_LINEAR)
-
-        WinLP = hanningWindow(lp01.shape)
-
-        # Take FFTs of the images
-        FFT01 = sp.fftpack.fft2(np.multiply(WinLP, lp01))
-        FFT02 = sp.fftpack.fft2(np.multiply(WinLP, lp02))
-
-        # Cross-correlate
-        ccSpectral = np.multiply(FFT01, np.conj(FFT02))
-
-    else:
-        for i in np.arange(0, fr01.shape[2], 1):
-            # Log Polar Unwrap
-            lp01 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0],
-                                  np.multiply(Win2D, fr01[:, :, i] - np.mean(fr01[:, :, i].flatten()))))
-            lp02 = np.abs(tformLP(imgX, imgY, imgLPX, imgLPY, imgLPX.shape[1], imgLPX.shape[0],
-                                  np.multiply(Win2D, fr02[:, :, i] - np.mean(fr02[:, :, i].flatten()))))
-
-            # lp01 = cv2.logPolar(np.multiply(Win2D,fr01[:, :, i] - np.mean(fr01[:, :, i].flatten())),
-            #                     (nY / 2, nX / 2), nX / np.log(MaxRad), cv2.INTER_LINEAR)
-            # lp02 = cv2.logPolar(np.multiply(Win2D,fr02[:, :, i] - np.mean(fr02[:, :, i].flatten())),
-            #                     (nY / 2, nX / 2), nX / np.log(MaxRad), cv2.INTER_LINEAR)
-
-            WinLP = hanningWindow(lp01.shape)
-
-            # Take FFTs of the images
-            FFT01 = sp.fftpack.fft2(np.multiply(WinLP, lp01))
-            FFT02 = sp.fftpack.fft2(np.multiply(WinLP, lp02))
-
-            # Cross-correlate
-            ccSpectral = ccSpectral + np.multiply(FFT01, np.conj(FFT02))
-
-    # Tranform back to spatial domain, perform shift
-    ccSpatial = np.abs(sp.fftpack.fftshift(sp.fftpack.fft2(ccSpectral)))
-
-    # Find location of peak in correlation
-    peakLocs = np.where(ccSpatial == np.max(ccSpatial.flatten('C')))
-    offsets = np.array([0, 0]).astype(float)
-
-    if np.mod(ccSpatial.shape[0], 2) != 0:
-        offsets[0] = -0.5
-
-    if np.mod(ccSpatial.shape[1], 2) != 0:
-        offsets[1] = -0.5
-
-    # Perform subpixel fitting
-    disp = subPix2D(ccSpatial, peakLocs, offsets)
-
-    # Update Scale Value
-    sdx -= disp[1]
-    stemp = disp[1]
-    scale = np.exp(1 * np.log(MaxRad / MinRad) * sdx / (nX - 1))
-
-    return scale, sdx, stemp

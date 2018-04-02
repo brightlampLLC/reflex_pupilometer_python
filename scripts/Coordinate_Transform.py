@@ -55,7 +55,8 @@ def LPGrid(nx, ny, rmin, rmax, nwedges, nring):
     r, th = np.meshgrid(rv, thv)
 
     # Convert log polar grid to cartesian.
-    x, y = pol2cart(r, th)
+    x = r * np.cos(th)
+    y = r * np.sin(th)
 
     # Shift the center of the log-polar grid to the zero-frequency
     x = x + xZero
