@@ -29,6 +29,7 @@ import pylab
 import numba
 import pandas
 import matplotlib.pyplot as plt
+import json
 
 # from numba import jit
 # from pdb import set_trace as keyboard
@@ -176,5 +177,37 @@ if __name__ == "__main__":
 
         sclPix, dispx, dispy, fr01, fr02 = spatialRegister(i, refroi, curroi, win2D, fmcmaxrad, errthresh,
                                                            iterthresh, dispx, dispy, sclPix)
+
+    ###############################################################################
+    ###################        OUTPUT PARAMETERS        ###########################
+    ###############################################################################
+
+    dilationRatio = pow(fmcmaxrad / 1, (np.cumsum(np.multiply(-sclPix[:, 0] / 2, frmStep)) / cropWin[3]))
+    dilationVelocity = sclPix / 2
+    constrictInd = np.where(dilationRatio == np.min(dilationRatio))
+    maxConstrictTime = timeVector[constrictInd][0]
+    magAcceleration = abs(np.gradient(sclPix[0: constrictInd[0][0]][:, 0]))
+    pks = sp.signal.find_peaks_cwt(magAcceleration, np.arange(1, 5))
+    quant50ind = np.where(magAcceleration[pks] >= np.median(magAcceleration[pks]))
+    onsetInd = np.where(magAcceleration[pks[quant50ind]] == np.max(magAcceleration[pks[quant50ind]]))
+    onsetInd = pks[quant50ind[0][onsetInd[0][0]]]
+    onsetTime = timeVector[onsetInd]
+    recoveryInd = np.where(dilationRatio[constrictInd[0][0]::] >= 0.75 * abs(1 - dilationRatio[constrictInd[0][0]])
+                           + dilationRatio[constrictInd[0][0]])
+    recoveryInd = constrictInd[0][0] + recoveryInd[0][0]
+    recoveryTime = timeVector[recoveryInd]
+    averageConstriction = np.trapz(sclPix[onsetInd:constrictInd[0][0]], axis=0)[0] / (constrictInd[0][0] - onsetInd)
+    averageDilation = np.trapz(sclPix[constrictInd[0][0]:recoveryInd], axis=0)[0] / (constrictInd[0][0] - recoveryInd)
+
     # DEBUG POINT
-    sclPix
+    # sclPix
+
+parameters = json.dumps({'Time to React': str(onsetTime),
+                         'Time to Recover': str(recoveryTime),
+                         'Dilation Magnitude': str(np.min(dilationRatio)),
+                         'Time to Minimum Constriction': str(constrictInd[0][0]),
+                         'Dilation Speed': str(averageDilation)},
+                        sort_keys=True, indent=4, separators=(',', ': '))
+
+with open(r'C:\\Users\Jonathan\Desktop\BL_Stuff\ReflexOutput.json', 'w') as outfile:
+    outfile.write(parameters)
