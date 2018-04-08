@@ -202,11 +202,13 @@ if __name__ == "__main__":
     # DEBUG POINT
     # sclPix
 
-parameters = json.dumps({'Time to React': str(onsetTime),
-                         'Time to Recover': str(recoveryTime),
-                         'Dilation Magnitude': str(np.min(dilationRatio)),
-                         'Time to Minimum Constriction': str(constrictInd[0][0]),
-                         'Dilation Speed': str(averageDilation)},
+parameters = json.dumps({'reflexTime': str(onsetTime),
+                         'recoveryTime': str(recoveryTime),
+                         'dilationMagnitude': str(np.min(dilationRatio)),
+                         'peak': str(constrictInd[0][0]),
+                         'dilationSpeed': str(averageDilation),
+                         'result': str(0),
+                         'testType': str(0)},
                         sort_keys=True, indent=4, separators=(',', ': '))
 
 with open(r'C:\\Users\Jonathan\Desktop\BL_Stuff\ReflexOutput.json', 'w') as outfile:
