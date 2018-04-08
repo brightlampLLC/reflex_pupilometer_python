@@ -19,6 +19,7 @@
 # Local_var = set.config_var
 
 import sys
+import os
 import cv2
 import pyfftw
 import imageio
@@ -43,10 +44,11 @@ from pandas import rolling_median
 from scripts.Hanning_Window import hanningWindow
 from scripts.Dilation_Register import spatialRegister
 from scripts.Haar_Cascade import detect_eye
-
+cwd = os.getcwd()
 
 # Load Eye Cascade
-cascade = cv2.CascadeClassifier('C:\\Users\Jonathan\Desktop\BL_Stuff\haarcascade_eye.xml')
+# cascade = cv2.CascadeClassifier('C:\\Users\Jonathan\Desktop\BL_Stuff\haarcascade_eye.xml')
+cascade = cv2.CascadeClassifier(cwd + "/scripts/haarcascade_eye.xml")
 
 pyfftw.interfaces.cache.enable()
 
@@ -58,7 +60,8 @@ pyfftw.interfaces.cache.enable()
 if __name__ == "__main__":
 
     # Set Image Directory
-    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/2018-03-09 15_30_34.mp4'
+    # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/Video_1-2_compression.mp4'
+    filename = sys.argv[0]
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
@@ -211,5 +214,6 @@ parameters = json.dumps({'reflexTime': str(onsetTime),
                          'testType': str(0)},
                         sort_keys=True, indent=4, separators=(',', ': '))
 
-with open(r'C:\\Users\Jonathan\Desktop\BL_Stuff\ReflexOutput.json', 'w') as outfile:
+saveDirectory = os.path.dirname(filename)
+with open(saveDirectory + "/ReflexOutput.json", 'w') as outfile:
     outfile.write(parameters)

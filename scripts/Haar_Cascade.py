@@ -72,12 +72,16 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
             # Store center locations and window sizes
             WinDims[i, 0] += peakLocs[0].mean()
             WinDims[i, 1] += peakLocs[1].mean()
-            # WinDims[i, 2] += (eyes[0, 3]) / 2
-            # WinDims[i, 3] += (eyes[0, 2]) / 2
-            WinDims[i, 2] += 256
-            WinDims[i, 3] += 256
+            WinDims[i, 2] += (eyes[0, 3]) / 2
+            WinDims[i, 3] += (eyes[0, 2]) / 2
+            # WinDims[i, 2] += 256
+            # WinDims[i, 3] += 256
+
         # Only use when skipping the haar classifier - FOR ARTIFICIAL DATA
+        # print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
+        #       % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
+
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
-              % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
+              % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[2].mean(), eyes[3].mean()))
 
     return eyes
