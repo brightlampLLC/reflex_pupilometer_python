@@ -60,8 +60,8 @@ pyfftw.interfaces.cache.enable()
 if __name__ == "__main__":
 
     # Set Image Directory
-    # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/Video_1-2_compression.mp4'
-    filename = sys.argv[0]
+    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/2018-02-06 22_32_25.mp4'
+    # filename = sys.argv[0]
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
@@ -75,13 +75,22 @@ if __name__ == "__main__":
     rmrng = zeros([imgProp['nframes'], 1])
     fps = vid.get_meta_data()['fps']
 
+    # Identify over-saturated frames, build frame series
+    for i in frng:
+        rmrng[i] = vid.get_data(i).mean() / 255
+    frng = np.delete(frng, (np.r_[0:np.round(0.8 * vid.get_meta_data()['fps']),
+                            where((rmrng >= 0.70))[0] - 2,
+                            where((rmrng >= 0.70))[0] - 1,
+                            where((rmrng >= 0.70))[0][-1],
+                            np.round(5.8 * vid.get_meta_data()['fps']):imgProp['nframes']]))
+
     ###############################################################################
     ##################    RUN IMAGE REGISTRATION     ##############################
     ###############################################################################
 
     # Image & FMC Parameters
-    xResample = imgProp['size'][1]
-    yResample = imgProp['size'][0]
+    xResample = imgProp['size'][0]
+    yResample = imgProp['size'][1]
     fmcMinRad = 1
     fmcMaxRad = np.min([yResample, xResample]) / 2
     fmcNoOfRings = xResample
@@ -96,8 +105,8 @@ if __name__ == "__main__":
     errthresh = float(1E-1)
 
     for i in frng:
-        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(vid.get_data(frng[0]).reshape(yResample, xResample, 3), 2),
-                                                            np.max(vid.get_data(i).reshape(yResample, xResample, 3), 2),
+        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(vid.get_data(i).reshape(yResample, xResample, 3), 2),
+                                                            np.max(vid.get_data(frng[0]).reshape(yResample, xResample, 3), 2),
                                                             Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
 
     ###############################################################################

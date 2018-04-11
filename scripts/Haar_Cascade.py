@@ -39,8 +39,6 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
                                   (xResample, yResample),
                                   cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)
         curframe[np.where(curframe == 0)] = 255
-        blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
-        peakLocs = where(blurframe == blurframe.max())
 
         # Run Haar Cascade classifier - https://docs.opencv.org/2.4/modules/objdetect/doc/cascade_classification.html
         # DOES NOT WORK WITH ARTIFICIAL DATA (i.e. FAKE EYES)
@@ -68,12 +66,16 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
                                                  int(np.min([yResample, xResample]) / 4)))
 
         # If eye is found, use Gaussian fitting function to find pupil center
-        if len(eyes) == 0:
+        if len(eyes) != 0:
+            blurframe = cv2.bitwise_not(cv2.GaussianBlur(curframe.max(axis=-1), (109, 109), 11))
+            cropblur = blurframe[eyes[0, 1]:(eyes[0, 1] + eyes[0, 3]), eyes[0, 0]:(eyes[0, 0] + eyes[0, 2])]
+            peakLocs = where(cropblur == cropblur.max())
+
             # Store center locations and window sizes
-            WinDims[i, 0] += peakLocs[0].mean()
-            WinDims[i, 1] += peakLocs[1].mean()
             WinDims[i, 2] += (eyes[0, 3]) / 2
             WinDims[i, 3] += (eyes[0, 2]) / 2
+            WinDims[i, 0] += eyes[0, 1] + peakLocs[0].mean()
+            WinDims[i, 1] += eyes[0, 0] + peakLocs[1].mean()
             # WinDims[i, 2] += 256
             # WinDims[i, 3] += 256
 
@@ -82,6 +84,6 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
         #       % (i, peakLocs[0].mean(), peakLocs[1].mean(), 256, 256))
 
         print("Detecting eye in Frame %03i, Y Center %03.2f, X Center %03.2f, Width %03i, Height %03i"
-              % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[2].mean(), eyes[3].mean()))
+              % (i, peakLocs[0].mean(), peakLocs[1].mean(), eyes[0, 2].mean(), eyes[0, 3].mean()))
 
     return eyes
