@@ -63,8 +63,8 @@ pyfftw.interfaces.cache.enable()
 if __name__ == "__main__":
 
     # Set Image Directory
-    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
-    # filename = sys.argv[0]
+    # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
+    filename = sys.argv[0]
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
