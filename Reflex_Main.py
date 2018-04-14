@@ -44,6 +44,9 @@ from pandas import rolling_median
 from scripts.Hanning_Window import hanningWindow
 from scripts.Dilation_Register import spatialRegister
 from scripts.Haar_Cascade import detect_eye
+from scripts.Outlier_Detection import velocityThreshold
+from scripts.Outlier_Detection import movingMAD
+from scripts.Outlier_Detection import velocityInterpolate
 cwd = os.getcwd()
 
 # Load Eye Cascade
@@ -60,7 +63,7 @@ pyfftw.interfaces.cache.enable()
 if __name__ == "__main__":
 
     # Set Image Directory
-    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/2018-02-06 22_32_25.mp4'
+    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
     # filename = sys.argv[0]
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
@@ -74,6 +77,16 @@ if __name__ == "__main__":
     frng = arange(0, imgProp['nframes'], 1)
     rmrng = zeros([imgProp['nframes'], 1])
     fps = vid.get_meta_data()['fps']
+    videoTEST = filename.partition('TEST')
+    videoTEST = videoTEST[1]
+    videoBASELINE = filename.partition('BASELINE')
+    videoBASELINE = videoBASELINE[1]
+
+    # Determine "Baseline" or "Test"
+    if videoTEST is "TEST":
+        testType = 1
+    else:
+        testType = 0
 
     # Identify over-saturated frames, build frame series
     for i in frng:
@@ -193,12 +206,15 @@ if __name__ == "__main__":
     ###############################################################################
     ###################        OUTPUT PARAMETERS        ###########################
     ###############################################################################
-
-    dilationRatio = pow(fmcmaxrad / 1, (np.cumsum(np.multiply(-sclPix[:, 0] / 2, frmStep)) / cropWin[3]))
-    dilationVelocity = sclPix / 2
+    scaleThreshold = abs(np.log(0.8) / np.log(fmcmaxrad / fmcMinRad) * cropWin[3] / 2)
+    sclPixVal = velocityThreshold(sclPix, scaleThreshold)
+    sclPixVal = velocityInterpolate(sclPixVal)
+    dilationVelocity = sclPixVal / 2
+    dilationRatio = pow(fmcmaxrad / 1, (np.cumsum(np.multiply(-dilationVelocity[0:frng.shape[0]],
+                                                              frmStep)) / cropWin[3]))
     constrictInd = np.where(dilationRatio == np.min(dilationRatio))
     maxConstrictTime = timeVector[constrictInd][0]
-    magAcceleration = abs(np.gradient(sclPix[0: constrictInd[0][0]][:, 0]))
+    magAcceleration = abs(np.gradient(sclPixVal[0: constrictInd[0][0]]))
     pks = sp.signal.find_peaks_cwt(magAcceleration, np.arange(1, 5))
     quant50ind = np.where(magAcceleration[pks] >= np.median(magAcceleration[pks]))
     onsetInd = np.where(magAcceleration[pks[quant50ind]] == np.max(magAcceleration[pks[quant50ind]]))
@@ -208,7 +224,7 @@ if __name__ == "__main__":
                            + dilationRatio[constrictInd[0][0]])
     recoveryInd = constrictInd[0][0] + recoveryInd[0][0]
     recoveryTime = timeVector[recoveryInd]
-    averageConstriction = np.trapz(sclPix[onsetInd:constrictInd[0][0]], axis=0)[0] / (constrictInd[0][0] - onsetInd)
+    averageConstriction = np.trapz(sclPixVal[onsetInd:constrictInd[0][0]], axis=0) / (constrictInd[0][0] - onsetInd)
     averageDilation = np.trapz(sclPix[constrictInd[0][0]:recoveryInd], axis=0)[0] / (constrictInd[0][0] - recoveryInd)
 
     # DEBUG POINT
@@ -219,8 +235,9 @@ parameters = json.dumps({'reflexTime': str(onsetTime),
                          'dilationMagnitude': str(np.min(dilationRatio)),
                          'peak': str(constrictInd[0][0]),
                          'dilationSpeed': str(averageDilation),
+                         'constrictionSpeed': str(averageConstriction),
                          'result': str(0),
-                         'testType': str(0)},
+                         'testType': str(testType)},
                         sort_keys=True, indent=4, separators=(',', ': '))
 
 saveDirectory = os.path.dirname(filename)
