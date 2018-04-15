@@ -59,9 +59,7 @@ pyfftw.interfaces.cache.enable()
 ##################         MAIN FUNCTION         ##############################
 ###############################################################################
 
-
-if __name__ == "__main__":
-
+def main(sys):
     # Set Image Directory
     # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
     filename = sys.argv[0]
@@ -227,19 +225,17 @@ if __name__ == "__main__":
     averageConstriction = np.trapz(sclPixVal[onsetInd:constrictInd[0][0]], axis=0) / (constrictInd[0][0] - onsetInd)
     averageDilation = np.trapz(sclPix[constrictInd[0][0]:recoveryInd], axis=0)[0] / (constrictInd[0][0] - recoveryInd)
 
-    # DEBUG POINT
-    # sclPix
+    parameters = json.dumps({'reflexTime': str(onsetTime),
+                             'recoveryTime': str(recoveryTime),
+                             'dilationMagnitude': str(np.min(dilationRatio)),
+                             'peak': str(constrictInd[0][0]),
+                             'dilationSpeed': str(averageDilation),
+                             'constrictionSpeed': str(averageConstriction),
+                             'result': str(0),
+                             'testType': str(testType)},
+                            sort_keys=True, indent=4, separators=(',', ': '))
 
-parameters = json.dumps({'reflexTime': str(onsetTime),
-                         'recoveryTime': str(recoveryTime),
-                         'dilationMagnitude': str(np.min(dilationRatio)),
-                         'peak': str(constrictInd[0][0]),
-                         'dilationSpeed': str(averageDilation),
-                         'constrictionSpeed': str(averageConstriction),
-                         'result': str(0),
-                         'testType': str(testType)},
-                        sort_keys=True, indent=4, separators=(',', ': '))
-
-saveDirectory = os.path.dirname(filename)
-with open(saveDirectory + "/ReflexOutput.json", 'w') as outfile:
-    outfile.write(parameters)
+    saveDirectory = os.path.dirname(filename)
+    # with open(saveDirectory + "/ReflexOutput.json", 'w') as outfile:
+    #     outfile.write(parameters)
+    return parameters
