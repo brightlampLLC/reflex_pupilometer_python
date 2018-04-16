@@ -60,10 +60,10 @@ pyfftw.interfaces.cache.enable()
 ###############################################################################
 
 
-def main(sys):
+def main(filename):
     # Set Image Directory
     # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
-    filename = sys.argv[0]
+    # filename = sys.argv[0]
 
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
@@ -221,7 +221,13 @@ def main(sys):
     onsetTime = timeVector[onsetInd]
     recoveryInd = np.where(dilationRatio[constrictInd[0][0]::] >= 0.75 * abs(1 - dilationRatio[constrictInd[0][0]])
                            + dilationRatio[constrictInd[0][0]])
-    recoveryInd = constrictInd[0][0] + recoveryInd[0][0]
+
+    # Check for 75% recovery
+    if not recoveryInd[0].tolist():
+        recoveryInd = frng[-1]
+    else:
+        recoveryInd = constrictInd[0][0] + recoveryInd[0][0]
+
     recoveryTime = timeVector[recoveryInd]
     averageConstriction = np.trapz(sclPixVal[onsetInd:constrictInd[0][0]], axis=0) / (constrictInd[0][0] - onsetInd)
     averageDilation = np.trapz(sclPix[constrictInd[0][0]:recoveryInd], axis=0)[0] / (constrictInd[0][0] - recoveryInd)
@@ -236,7 +242,10 @@ def main(sys):
                              'testType': str(testType)},
                             sort_keys=True, indent=4, separators=(',', ': '))
 
-    saveDirectory = os.path.dirname(filename)
+    # saveDirectory = os.path.dirname(filename)
     # with open(saveDirectory + "/ReflexOutput.json", 'w') as outfile:
     #     outfile.write(parameters)
     return parameters
+
+
+main(sys.argv[0])

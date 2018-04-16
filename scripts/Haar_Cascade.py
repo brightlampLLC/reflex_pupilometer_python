@@ -72,8 +72,8 @@ def detect_eye(cascade, T1, WinDims, vid, frng, fmcMaxRad, xResample, yResample,
             peakLocs = where(cropblur == cropblur.max())
 
             # Store center locations and window sizes
-            WinDims[i, 2] += (eyes[0, 3]) / 2
-            WinDims[i, 3] += (eyes[0, 2]) / 2
+            WinDims[i, 2] += (eyes[0, 3]) / 2.25
+            WinDims[i, 3] += (eyes[0, 2]) / 2.25
             WinDims[i, 0] += eyes[0, 1] + peakLocs[0].mean()
             WinDims[i, 1] += eyes[0, 0] + peakLocs[1].mean()
             # WinDims[i, 2] += 256
