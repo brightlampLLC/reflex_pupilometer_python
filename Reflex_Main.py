@@ -1,3 +1,4 @@
+# !/usr/bin/python3
 # ----------------------------------------------------------------------------------------------------------------------
 #   Name: Reflex_Main
 #   Purpose: Main program for 'Reflex' algorithm
@@ -261,8 +262,7 @@ def main(filename):
     # saveDirectory = os.path.dirname(filename)
     # with open(saveDirectory + "/reflexOutput.json", 'w') as outfile:
     #     outfile.write(parameters)
-    return parameters
     print(parameters)
 
 
-main(sys.argv[0])
+main(sys.argv[1])
