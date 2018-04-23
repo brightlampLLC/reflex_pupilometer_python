@@ -147,8 +147,8 @@ def spatialRegister(i, frame01, frame02, Win2D, MaxRad, errthresh, iterthresh, d
         errval = max([sqrt(trnsdisp[1]**2 + trnsdisp[0]**2), abs(fmcdisp[1])])
         iteration += 1
 
-    print("Registering frame %03i, Iter %03i, DispX %03.2f, DispY %03.2f, Scale %03.3f, Error %03.3f"
-              % (i, iteration, np.float(dispX[i]), np.float(dispY[i]),
-                 pow(MaxRad, -scldisp[i] / frame01.shape[1]), errval))
+    # print("Registering frame %03i, Iter %03i, DispX %03.2f, DispY %03.2f, Scale %03.3f, Error %03.3f"
+    #           % (i, iteration, np.float(dispX[i]), np.float(dispY[i]),
+    #              pow(MaxRad, -scldisp[i] / frame01.shape[1]), errval))
 
     return scldisp, dispX, dispY, fr01, fr02
