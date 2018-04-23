@@ -60,10 +60,10 @@ pyfftw.interfaces.cache.enable()
 ###############################################################################
 
 
-#def main(filename):
-if __name__ == "__main__":
+def main(filename):
+    # if __name__ == "__main__":
     # Set Image Directory
-    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/Tested/TEST_bd8e7d03-51c6-42bd-a5ef-f3179058dac3.mp4'
+    # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/Not_Tested/TEST_2145fa55-d952-4908-9fb1-6e95a9b168d2.mp4'
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
     vid = imageio.get_reader(filename, 'ffmpeg')
@@ -99,9 +99,14 @@ if __name__ == "__main__":
     ##################    RUN IMAGE REGISTRATION     ##############################
     ###############################################################################
 
-    # Image & FMC Parameters
-    xResample = imgProp['size'][0]
-    yResample = imgProp['size'][1]
+    # Image & FMC Parameters (original)
+    # xResample = imgProp['size'][0]
+    # yResample = imgProp['size'][1]
+
+    # Optimized image resampling
+    xResample = np.round(imgProp['size'][0] / 4).astype(int)
+    yResample = np.round(imgProp['size'][1] / 4).astype(int)
+
     fmcMinRad = 1
     fmcMaxRad = np.min([yResample, xResample]) / 2
     fmcNoOfRings = xResample
@@ -116,9 +121,21 @@ if __name__ == "__main__":
     errthresh = float(1E-1)
 
     for i in frng:
-        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(vid.get_data(i).reshape(yResample, xResample, 3), 2),
-                                                            np.max(vid.get_data(frng[0]).reshape(yResample, xResample, 3), 2),
+        scldisp, dispX, dispY, fr01, fr02 = spatialRegister(i, np.max(cv2.resize(vid.get_data(i), (xResample, yResample)).reshape(yResample, xResample, 3), 2),
+                                                            np.max(cv2.resize(vid.get_data(frng[0]), (xResample, yResample)).reshape(yResample, xResample, 3), 2),
                                                             Win2D, fmcMaxRad, errthresh, iterthresh, dispX, dispY, scldisp)
+
+    # Revert xResample and yResample back to original size
+    dispX = 4 * dispX
+    dispY = 4 * dispY
+    xResample = imgProp['size'][0]
+    yResample = imgProp['size'][1]
+
+    fmcMinRad = 1
+    fmcMaxRad = np.min([yResample, xResample]) / 2
+    fmcNoOfRings = xResample
+    fmcNoOfWedges = yResample
+    Win2D = hanningWindow([yResample, xResample])
 
     ###############################################################################
     #############     DETECT EYE IN REGISTERED IMAGES     #########################
@@ -204,15 +221,15 @@ if __name__ == "__main__":
     ###############################################################################
     ###################        OUTPUT PARAMETERS        ###########################
     ###############################################################################
+    deltaT = frng[2:] - frng[:-2]
     scaleThreshold = abs(np.log(0.8) / np.log(fmcmaxrad / fmcMinRad) * cropWin[3] / 2)
     sclPixVal = velocityThreshold(sclPix, scaleThreshold)
     sclPixVal = velocityInterpolate(sclPixVal)
-    dilationVelocity = sclPixVal / 2
-    dilationRatio = pow(fmcmaxrad / 1, (np.cumsum(np.multiply(-dilationVelocity[0:frng.shape[0]],
-                                                              frmStep)) / cropWin[3]))
+    dilationVelocity = np.divide(sclPixVal[0:deltaT.shape[0]], deltaT)
+    dilationRatio = pow(fmcmaxrad / 1, (np.cumsum(np.multiply(-dilationVelocity, frmStep[1:-1] * 2)) / cropWin[3]))
     constrictInd = np.where(dilationRatio == np.min(dilationRatio))
     maxConstrictTime = timeVector[constrictInd][0]
-    magAcceleration = abs(np.gradient(sclPixVal[0: constrictInd[0][0]]))
+    magAcceleration = abs(np.gradient(dilationVelocity[0: constrictInd[0][0]]))
     pks = sp.signal.find_peaks_cwt(magAcceleration, np.arange(1, 5))
     quant50ind = np.where(magAcceleration[pks] >= np.median(magAcceleration[pks]))
     onsetInd = np.where(magAcceleration[pks[quant50ind]] == np.max(magAcceleration[pks[quant50ind]]))
@@ -241,10 +258,11 @@ if __name__ == "__main__":
                              'testType': str(testType)},
                             sort_keys=True, indent=4, separators=(',', ': '))
 
-    saveDirectory = os.path.dirname(filename)
-    with open(saveDirectory + "/reflexOutput.json", 'w') as outfile:
-        outfile.write(parameters)
-    # return parameters
+    # saveDirectory = os.path.dirname(filename)
+    # with open(saveDirectory + "/reflexOutput.json", 'w') as outfile:
+    #     outfile.write(parameters)
+    return parameters
+    print(parameters)
 
 
-# main(sys.argv[0])
+main(sys.argv[0])
