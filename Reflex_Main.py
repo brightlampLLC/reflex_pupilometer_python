@@ -60,11 +60,10 @@ pyfftw.interfaces.cache.enable()
 ###############################################################################
 
 
-def main(filename):
+#def main(filename):
+if __name__ == "__main__":
     # Set Image Directory
-    # filename = 'C://Users/Jonathan/Desktop/BL_Stuff/BASELINE2018-02-06 22_32_25.mp4'
-    # filename = sys.argv[0]
-
+    filename = 'C://Users/Jonathan/Desktop/BL_Stuff/Tested/TEST_bd8e7d03-51c6-42bd-a5ef-f3179058dac3.mp4'
     # filename = '/Users/brettmeyers/Desktop/from_S7/2018-01-06 15:32:44.mp4'
     # "Read" the video
     vid = imageio.get_reader(filename, 'ffmpeg')
@@ -91,9 +90,9 @@ def main(filename):
     for i in frng:
         rmrng[i] = vid.get_data(i).mean() / 255
     frng = np.delete(frng, (np.r_[0:np.round(0.8 * vid.get_meta_data()['fps']),
-                            where((rmrng >= 0.70))[0] - 2,
-                            where((rmrng >= 0.70))[0] - 1,
-                            where((rmrng >= 0.70))[0][-1],
+                            where(rmrng >= np.mean(rmrng) + 2 * np.std(rmrng))[0] - 2,
+                            where(rmrng >= np.mean(rmrng) + 2 * np.std(rmrng))[0] - 1,
+                            where(rmrng >= np.mean(rmrng) + 2 * np.std(rmrng))[0][-1],
                             np.round(5.8 * vid.get_meta_data()['fps']):imgProp['nframes']]))
 
     ###############################################################################
@@ -242,10 +241,10 @@ def main(filename):
                              'testType': str(testType)},
                             sort_keys=True, indent=4, separators=(',', ': '))
 
-    # saveDirectory = os.path.dirname(filename)
-    # with open(saveDirectory + "/ReflexOutput.json", 'w') as outfile:
-    #     outfile.write(parameters)
-    return parameters
+    saveDirectory = os.path.dirname(filename)
+    with open(saveDirectory + "/reflexOutput.json", 'w') as outfile:
+        outfile.write(parameters)
+    # return parameters
 
 
-main(sys.argv[0])
+# main(sys.argv[0])
